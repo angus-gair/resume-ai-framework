@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import Button from '../components/Button';
+import ResumeEditor from '../components/ResumeEditor';
 
 function ReviewPage() {
   const {
@@ -15,6 +16,8 @@ function ReviewPage() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [editedMessage, setEditedMessage] = useState(recruiterMessage);
+  const [editedHtml, setEditedHtml] = useState(tailoredHtml);
+  const [viewMode, setViewMode] = useState('preview'); // 'preview' or 'edit'
 
   const handleSaveHTML = async () => {
     setIsSaving(true);
@@ -26,7 +29,7 @@ function ReviewPage() {
       const outputPath = `${outputDirectory}/${filename}`;
 
       const result = await window.electronAPI.saveResume({
-        html: tailoredHtml,
+        html: editedHtml,
         outputPath,
       });
 
@@ -52,7 +55,7 @@ function ReviewPage() {
       const outputPath = `${outputDirectory}/${filename}`;
 
       const result = await window.electronAPI.exportPDF({
-        html: tailoredHtml,
+        html: editedHtml,
         outputPath,
       });
 
@@ -84,10 +87,34 @@ function ReviewPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Resume Preview */}
+        {/* Resume Preview/Editor */}
         <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden flex flex-col">
           <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Tailored Resume</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold">Tailored Resume</h3>
+              <div className="flex gap-1 bg-slate-700 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('preview')}
+                  className={`px-3 py-1 text-xs rounded transition ${
+                    viewMode === 'preview'
+                      ? 'bg-primary-500 text-white'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Preview
+                </button>
+                <button
+                  onClick={() => setViewMode('edit')}
+                  className={`px-3 py-1 text-xs rounded transition ${
+                    viewMode === 'edit'
+                      ? 'bg-primary-500 text-white'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
             <div className="flex gap-2">
               <Button
                 onClick={handleSaveHTML}
@@ -110,12 +137,19 @@ function ReviewPage() {
           </div>
 
           <div className="flex-1 overflow-auto bg-white">
-            <iframe
-              srcDoc={tailoredHtml}
-              className="w-full h-full min-h-[600px]"
-              title="Resume Preview"
-              sandbox="allow-same-origin"
-            />
+            {viewMode === 'preview' ? (
+              <iframe
+                srcDoc={editedHtml}
+                className="w-full h-full min-h-[600px]"
+                title="Resume Preview"
+                sandbox="allow-same-origin"
+              />
+            ) : (
+              <ResumeEditor
+                initialHtml={editedHtml}
+                onHtmlChange={setEditedHtml}
+              />
+            )}
           </div>
         </div>
 

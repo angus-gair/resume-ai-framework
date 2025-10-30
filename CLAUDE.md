@@ -35,19 +35,33 @@ The framework uses a sequential three-stage pipeline (see [Project-framework.mmd
    - **Purpose**: Transform structured data into polished, tailored resumes
    - **Agent**: `master-resume`
 
-### Resume Polisher (Two-Stage Extension)
+### Resume Polisher Desktop App (Electron + GrapesJS)
 
-An additional workflow for job-specific tailoring:
+An Electron desktop application providing a complete job-specific tailoring workflow with integrated WYSIWYG editing:
 
-**Stage 1 - Extract Position Requirements**
-- Input: Job URL (e.g., from seek.com.au)
-- Output: `POSITION-REQUIREMENTS.md`
-- Uses LLM to extract key position information
+**5-Step Workflow:**
 
-**Stage 2 - Generate Tailored Resume**
-- Inputs: Position requirements, resume template (.html), resume database
-- Output: Refined resume.html + recruiter message
-- Agent: Resume Refinement Agent (`agents/4-Resume-Refinement-Agent`)
+1. **Setup** - Configure Anthropic API key and upload master resume database
+2. **Extract** - Scrape job requirements from URL or paste job description text
+3. **Configure** - Review extracted requirements and customize if needed
+4. **Generate** - AI generates tailored resume HTML using Claude Sonnet 4.5
+5. **Review & Edit** - Preview/Edit mode with GrapesJS visual editor
+   - **Preview Mode**: View rendered HTML resume
+   - **Edit Mode**: Full WYSIWYG editor with drag-and-drop blocks
+   - Integrated editing capabilities from resume-editor-app
+   - Real-time HTML/CSS editing with visual controls
+   - Layer management, style panels, and resume section blocks
+
+**Key Features:**
+- Dual input methods: URL scraping (via cheerio) or paste text
+- Claude Sonnet 4.5 integration for intelligent resume generation
+- GrapesJS WYSIWYG editor for post-generation refinement
+- Recruiter message generation
+- Export to HTML/PDF
+- Australian English enforcement
+
+**Location:** `resume-polisher-app/`
+**Tech Stack:** Electron, React, Zustand, GrapesJS, Anthropic SDK, Cheerio
 
 ## Directory Structure
 
