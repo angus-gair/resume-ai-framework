@@ -4,6 +4,9 @@ export const useStore = create((set, get) => ({
   // API state
   isAPIInitialized: false,
   apiKey: '',
+  provider: 'anthropic', // 'anthropic', 'openai', 'openrouter'
+  model: 'claude-sonnet-4-5',
+  baseURL: '',
 
   // Navigation
   currentPage: 'extract',
@@ -39,6 +42,9 @@ export const useStore = create((set, get) => ({
   // Actions
   setAPIInitialized: (value) => set({ isAPIInitialized: value }),
   setAPIKey: (key) => set({ apiKey: key }),
+  setProvider: (provider) => set({ provider }),
+  setModel: (model) => set({ model }),
+  setBaseURL: (baseURL) => set({ baseURL }),
 
   setCurrentPage: (page) => set({ currentPage: page }),
 
