@@ -9,6 +9,7 @@ function ReviewPage() {
     recruiterMessage,
     generatedAt,
     outputDirectory,
+    usage,
     resetForNewJob,
   } = useStore();
 
@@ -17,10 +18,12 @@ function ReviewPage() {
   const [saveStatus, setSaveStatus] = useState('');
   const [editedMessage, setEditedMessage] = useState(recruiterMessage);
   const [editedHtml, setEditedHtml] = useState(tailoredHtml);
+  const [editHistory, setEditHistory] = useState([]);
   const [viewMode, setViewMode] = useState('preview'); // 'preview' or 'edit'
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [recruiterCollapsed, setRecruiterCollapsed] = useState(false);
   const [infoCollapsed, setInfoCollapsed] = useState(false);
+  const [historyCollapsed, setHistoryCollapsed] = useState(true);
   const [stepsCollapsed, setStepsCollapsed] = useState(true);
 
   const handleSaveHTML = async () => {
@@ -190,7 +193,21 @@ function ReviewPage() {
           ) : (
             <ResumeEditor
               initialHtml={editedHtml}
-              onHtmlChange={setEditedHtml}
+              onHtmlChange={(newHtml) => {
+                // Track edit history
+                const timestamp = new Date().toLocaleTimeString('en-AU', {
+                  hour12: false,
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                });
+                setEditHistory(prev => [...prev, {
+                  time: timestamp,
+                  message: 'Resume content updated',
+                  charCount: newHtml.length
+                }]);
+                setEditedHtml(newHtml);
+              }}
             />
           )}
         </div>
@@ -267,6 +284,81 @@ function ReviewPage() {
                       {outputDirectory}
                     </div>
                   </div>
+
+                  {usage && (
+                    <>
+                      <div className="border-t border-slate-700 pt-3 mt-3">
+                        <div className="text-slate-400 text-xs mb-2 font-semibold">API Usage:</div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="bg-slate-800 p-2 rounded">
+                            <div className="text-slate-500">Input Tokens</div>
+                            <div className="text-white font-mono">{usage.inputTokens.toLocaleString()}</div>
+                          </div>
+                          <div className="bg-slate-800 p-2 rounded">
+                            <div className="text-slate-500">Output Tokens</div>
+                            <div className="text-white font-mono">{usage.outputTokens.toLocaleString()}</div>
+                          </div>
+                        </div>
+                        <div className="mt-2 bg-slate-800 p-2 rounded">
+                          <div className="text-slate-500 text-xs">Total Tokens</div>
+                          <div className="text-white font-mono text-sm">{usage.totalTokens.toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-700 pt-3">
+                        <div className="text-slate-400 text-xs mb-2 font-semibold">Cost:</div>
+                        <div className="bg-emerald-900/30 border border-emerald-700 p-3 rounded">
+                          <div className="text-emerald-400 text-2xl font-bold font-mono">
+                            ${usage.costUSD.toFixed(4)}
+                          </div>
+                          <div className="text-emerald-300 text-xs mt-1">
+                            Claude Sonnet 4.5 pricing
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Edit History - Collapsible */}
+            <div className="border-b border-slate-700">
+              <button
+                onClick={() => setHistoryCollapsed(!historyCollapsed)}
+                className="w-full p-4 flex items-center justify-between hover:bg-slate-800 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">Edit History</h3>
+                  {editHistory.length > 0 && (
+                    <span className="bg-primary-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {editHistory.length}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xl">
+                  {historyCollapsed ? '▼' : '▲'}
+                </span>
+              </button>
+
+              {!historyCollapsed && (
+                <div className="p-4 pt-0">
+                  {editHistory.length === 0 ? (
+                    <div className="text-slate-500 text-sm italic">
+                      No edits yet. Switch to Edit mode to make changes.
+                    </div>
+                  ) : (
+                    <div className="bg-black/40 rounded p-3 max-h-48 overflow-y-auto font-mono text-xs">
+                      <div className="space-y-1">
+                        {editHistory.map((edit, index) => (
+                          <div key={index} className="text-purple-400">
+                            <span className="text-slate-500">[{edit.time}]</span> {edit.message}
+                            <span className="text-slate-600"> ({edit.charCount.toLocaleString()} chars)</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

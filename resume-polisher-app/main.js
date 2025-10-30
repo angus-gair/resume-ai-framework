@@ -584,11 +584,26 @@ Keep it concise, confident, and professional.`;
       log: 'Resume generation complete! Ready for review.'
     });
 
+    // Calculate token usage and cost
+    const inputTokens = message.usage.input_tokens + recruiterMessage.usage.input_tokens;
+    const outputTokens = message.usage.output_tokens + recruiterMessage.usage.output_tokens;
+
+    // Claude Sonnet 4.5 pricing (as of Oct 2024): $3 per 1M input tokens, $15 per 1M output tokens
+    const costInput = (inputTokens / 1000000) * 3;
+    const costOutput = (outputTokens / 1000000) * 15;
+    const totalCost = costInput + costOutput;
+
     return {
       success: true,
       tailoredHtml: tailoredHtml,
       recruiterMessage: recruiterMessage.content[0].text,
-      generatedAt: new Date().toISOString()
+      generatedAt: new Date().toISOString(),
+      usage: {
+        inputTokens,
+        outputTokens,
+        totalTokens: inputTokens + outputTokens,
+        costUSD: totalCost
+      }
     };
   } catch (error) {
     return { success: false, error: error.message };

@@ -74,7 +74,8 @@ function GeneratePage() {
         setResults(
           result.tailoredHtml,
           result.recruiterMessage,
-          result.generatedAt
+          result.generatedAt,
+          result.usage
         );
         setCurrentPage('review');
       } else {

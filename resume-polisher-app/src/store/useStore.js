@@ -29,6 +29,7 @@ export const useStore = create((set, get) => ({
   tailoredHtml: '',
   recruiterMessage: '',
   generatedAt: null,
+  usage: null,
 
   // Progress tracking
   scrapingProgress: {},
@@ -54,8 +55,8 @@ export const useStore = create((set, get) => ({
   setGenerationState: (isGenerating, progress, stage) =>
     set({ isGenerating, generationProgress: progress, generationStage: stage }),
 
-  setResults: (tailoredHtml, recruiterMessage, generatedAt) =>
-    set({ tailoredHtml, recruiterMessage, generatedAt }),
+  setResults: (tailoredHtml, recruiterMessage, generatedAt, usage) =>
+    set({ tailoredHtml, recruiterMessage, generatedAt, usage }),
 
   setScrapingProgress: (progress) => set({ scrapingProgress: progress }),
   setExtractionProgress: (progress) => set({ extractionProgress: progress }),
@@ -70,6 +71,7 @@ export const useStore = create((set, get) => ({
     tailoredHtml: '',
     recruiterMessage: '',
     generatedAt: null,
+    usage: null,
     generationProgress: 0,
     generationStage: '',
   }),
