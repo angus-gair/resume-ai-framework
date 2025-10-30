@@ -383,23 +383,59 @@ ipcMain.handle('generate-tailored-resume', async (event, { requirements, templat
       return { success: false, error: 'API key not initialized' };
     }
 
-    mainWindow.webContents.send('generation-progress', { stage: 'preparing', progress: 10 });
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'preparing',
+      progress: 5,
+      log: 'Initializing resume generation process...'
+    });
 
     // Read agent prompt
     const agentPath = path.join(__dirname, '..', 'agents', '3- Master-Resume-Creator.md');
     let agentInstructions = '';
     try {
       agentInstructions = await fs.readFile(agentPath, 'utf-8');
+      mainWindow.webContents.send('generation-progress', {
+        stage: 'preparing',
+        progress: 10,
+        log: 'Loaded Master Resume Creator agent instructions'
+      });
     } catch (e) {
       agentInstructions = 'You are a resume tailoring specialist.';
+      mainWindow.webContents.send('generation-progress', {
+        stage: 'preparing',
+        progress: 10,
+        log: 'Using default agent instructions'
+      });
     }
 
-    mainWindow.webContents.send('generation-progress', { stage: 'analyzing', progress: 30 });
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'analyzing',
+      progress: 15,
+      log: 'Analyzing job requirements...'
+    });
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'analyzing',
+      progress: 20,
+      log: 'Querying resume database for matching achievements...'
+    });
 
     // Build context
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'analyzing',
+      progress: 25,
+      log: 'Building context from resume database...'
+    });
+
     const topAchievements = database.index.query_paths.get_top_achievements_by_impact.slice(0, 20);
     const relevantSkills = database.index.indices.skills.primary.slice(0, 30);
     const technologies = database.index.indices.technologies.slice(0, 40);
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'analyzing',
+      progress: 30,
+      log: `Found ${topAchievements.length} top achievements, ${relevantSkills.length} skills, ${technologies.length} technologies`
+    });
 
     const prompt = `${agentInstructions}
 
@@ -447,7 +483,23 @@ IMPORTANT OUTPUT FORMAT:
 - DO NOT ask for confirmation
 - Generate the complete resume immediately`;
 
-    mainWindow.webContents.send('generation-progress', { stage: 'generating', progress: 50 });
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'generating',
+      progress: 35,
+      log: 'Preparing prompt for Claude Sonnet 4.5...'
+    });
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'generating',
+      progress: 40,
+      log: 'Sending request to Anthropic API...'
+    });
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'generating',
+      progress: 45,
+      log: 'Waiting for AI to analyze requirements and select matching achievements...'
+    });
 
     const message = await anthropicClient.messages.create({
       model: 'claude-sonnet-4-5',
@@ -455,7 +507,17 @@ IMPORTANT OUTPUT FORMAT:
       messages: [{ role: 'user', content: prompt }]
     });
 
-    mainWindow.webContents.send('generation-progress', { stage: 'finalizing', progress: 80 });
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'generating',
+      progress: 70,
+      log: `AI response received (${message.content[0].text.length} characters)`
+    });
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'finalizing',
+      progress: 75,
+      log: 'Processing AI response and extracting HTML...'
+    });
 
     let tailoredHtml = message.content[0].text;
 
@@ -485,7 +547,17 @@ IMPORTANT OUTPUT FORMAT:
     }
 
     // Generate recruiter message
-    mainWindow.webContents.send('generation-progress', { stage: 'message', progress: 90 });
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'message',
+      progress: 80,
+      log: 'Validating generated HTML structure...'
+    });
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'message',
+      progress: 85,
+      log: 'Generating personalized recruiter message...'
+    });
 
     const messagePrompt = `Based on these position requirements, write a short, professional message (3-4 sentences) to send to the recruiter expressing interest in the role. Be specific about matching qualifications. Use Australian English.
 
@@ -500,7 +572,17 @@ Keep it concise, confident, and professional.`;
       messages: [{ role: 'user', content: messagePrompt }]
     });
 
-    mainWindow.webContents.send('generation-progress', { stage: 'complete', progress: 100 });
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'message',
+      progress: 95,
+      log: 'Recruiter message generated successfully'
+    });
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'complete',
+      progress: 100,
+      log: 'Resume generation complete! Ready for review.'
+    });
 
     return {
       success: true,

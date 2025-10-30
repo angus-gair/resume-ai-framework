@@ -1,32 +1,591 @@
-*Generated complete resume tailored to JD Ross Energy's Senior Data Analyst role, maintaining the existing HTML template and styling while optimizing content for the specific requirements*
+<!DOCTYPE html>
+<html lang="en">
 
-[The complete HTML resume document would be generated here, with key modifications including:
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANGUS JAMES - Senior Data Analyst</title>
 
-1. Professional Summary Adjustment:
-- Emphasize data analysis, Power BI, dashboard development
-- Highlight stakeholder communication and technical insights translation
-- Focus on enterprise data integration and optimization skills
+  <style>
+    :root {
+      --accent-color: #1565C0;
+      --accent-light: #E3F2FD;
+      --font-family: 'Segoe UI', 'Open Sans', Arial, sans-serif;
+      --font-size-body: 10pt;
+      --font-size-small: 9pt;
+      --font-size-heading: 11pt;
+      --font-size-name: 28pt;
+      --font-weight-normal: 400;
+      --font-weight-bold: 600;
+      --line-height: 1.5;
+      --padding: 0.5in;
+      --spacing-xs: 2pt;
+      --spacing-small: 4pt;
+      --spacing-medium: 8pt;
+      --spacing-large: 16pt;
+      --bullet-char: '▸';
+      --color-text: #212121;
+      --color-secondary: #424242;
+    }
 
-2. Achievement Selection Strategy:
-- Prioritize WooliesX and Sydney Trains achievements demonstrating:
-  - Data integration
-  - Dashboard development
-  - Power BI/visualization skills
-  - ETL monitoring
-  - Performance analysis
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-3. Technology Emphasis:
-- Highlight Power BI, DAX, Power Query
-- Showcase SQL and data integration capabilities
-- Demonstrate cloud platform and API integration experience
+    body {
+      color: var(--color-text);
+      font-weight: var(--font-weight-normal);
+      font-size: var(--font-size-body);
+      font-family: var(--font-family);
+      line-height: var(--line-height);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
 
-4. Skills Section Refinement:
-- Expand Power BI and data visualization skills
-- Add Microsoft ecosystem technologies
-- Emphasize automation and integration capabilities
+    .page {
+      padding: var(--padding);
+      width: 10.5in;
+      min-height: 11in;
+      background-color: white;
+      position: relative;
+    }
 
-5. Targeted Project Selection:
-- Feature projects showing dashboard development
-- Highlight data governance and quality monitoring experiences
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-medium);
+      padding-bottom: var(--spacing-medium);
+      border-bottom: 2px solid var(--accent-color);
+    }
 
-Would you like me to display the generated HTML resume document?]
+    .header-primary {
+      flex: 1;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: baseline;
+      gap: 1em;
+    }
+
+    .full-name {
+      color: var(--accent-color);
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-name);
+      line-height: 1;
+    }
+
+    .title {
+      font-size: calc(var(--font-size-heading) + 2pt);
+      color: var(--color-secondary);
+      font-weight: var(--font-weight-normal);
+    }
+
+    .contact-details {
+      display: flex;
+      gap: 1em;
+      font-size: var(--font-size-small);
+      color: var(--color-secondary);
+    }
+
+    .contact-details span:not(:last-child)::after {
+      content: '|';
+      margin-left: 1em;
+      color: #BDBDBD;
+    }
+
+    .content {
+      display: flex;
+      gap: 3%;
+    }
+
+    .col-main {
+      flex: 0 0 67%;
+    }
+
+    .col-aside {
+      flex: 0 0 30%;
+    }
+
+    .section {
+      margin-bottom: var(--spacing-large);
+    }
+
+    .section-title {
+      text-transform: uppercase;
+      color: var(--accent-color);
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-heading);
+      border-bottom: 1px solid var(--accent-light);
+      margin-bottom: var(--spacing-medium);
+      padding-bottom: 2pt;
+      letter-spacing: 0.5pt;
+    }
+
+    .block {
+      margin-bottom: var(--spacing-large);
+      margin-top: var(--spacing-medium);
+    }
+
+    .block-heading {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .heading-primary {
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-heading);
+      color: var(--color-text);
+    }
+
+    .heading-secondary {
+      font-size: var(--font-size-body);
+      color: var(--color-secondary);
+      font-style: italic;
+    }
+
+    .heading-minor {
+      font-size: var(--font-size-small);
+      color: var(--color-secondary);
+    }
+
+    .col-main .heading-minor {
+      font-weight: var(--font-weight-bold);
+    }
+
+    .professional-summary {
+      font-size: var(--font-size-body);
+      color: var(--color-text);
+      margin-bottom: var(--spacing-medium);
+      line-height: 1.6;
+    }
+
+    ul {
+      list-style: none;
+      margin-left: 0;
+    }
+
+    li {
+      position: relative;
+      margin-bottom: var(--spacing-small);
+      padding-left: 16pt;
+      line-height: 1.4;
+    }
+
+    li:before {
+      content: var(--bullet-char);
+      position: absolute;
+      left: 0;
+      color: var(--accent-color);
+    }
+
+    .skills-category {
+      margin-bottom: var(--spacing-large);
+    }
+
+    .skill-category-title {
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-small);
+      color: var(--color-text);
+      margin-bottom: var(--spacing-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.3pt;
+    }
+
+    .skills-list {
+      font-size: var(--font-size-small);
+    }
+
+    .skills-list li {
+      margin-bottom: 2pt;
+      padding-left: 12pt;
+    }
+
+    .col-aside .heading-primary {
+      font-size: var(--font-size-small);
+    }
+
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .project-impact {
+      font-size: var(--font-size-small);
+      color: var(--accent-color);
+      font-weight: var(--font-weight-bold);
+    }
+
+    a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .page {
+        width: 9in;
+        padding: 0.5in;
+        min-height: auto;
+      }
+    }
+
+    @media screen {
+      body {
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        padding: 2rem 0;
+      }
+
+      .page {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 9in;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <!-- HEADER SECTION -->
+    <div class="header">
+      <div class="header-primary">
+        <div class="header-content">
+          <span class="full-name">ANGUS JAMES</span>
+          <span class="title">Senior Data Analyst</span>
+        </div>
+        <div class="contact-details">
+          <span>Sydney, NSW</span>
+          <span>(02) 8201 3710</span>
+          <span>angus@ajinsights.com.au</span>
+          <span><a href="https://www.ajinsights.com.au">ajinsights.com.au</a></span>
+          <span><a href="https://github.com/angus-gair">github.com/angus-gair</a></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+      <!-- LEFT COLUMN -->
+      <div class="col-main">
+        <div class="section">
+          <div class="section-title">Professional Summary</div>
+          <div class="professional-summary">
+            Senior Data Analyst with 8+ years of experience delivering enterprise-level data integration, analytics, and visualisation solutions across government, retail, and financial services sectors. Proven expertise in Power BI dashboard development, advanced SQL, data modelling, and stakeholder collaboration. Demonstrated capability in consolidating data from multiple sources, implementing automated reporting systems, and translating complex technical analysis into actionable business insights. Track record of managing $52.3M+ in financial forecasting, processing 170M+ transactions, and achieving 97.8% accuracy in predictive models.
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Professional Experience</div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">AJ Insights</span>
+              <span class="heading-minor">December 2024 – Present</span>
+            </div>
+            <div class="heading-secondary">Founder & Lead Data Engineer</div>
+            <ul>
+              <li>Designed and implemented comprehensive data integration platform consolidating Windows, cloud infrastructure, and application metrics from multiple sources into unified reporting dashboards</li>
+              <li>Built 13 interactive Power BI-style dashboards with advanced DAX-equivalent calculations and real-time data refresh capabilities serving enterprise monitoring requirements</li>
+              <li>Developed automated ETL pipelines processing 60+ custom metrics with sub-100ms response times ensuring high data quality and system performance</li>
+              <li>Engineered troubleshooting framework achieving 320-640% efficiency improvement through systematic data analysis and root cause identification methodologies</li>
+              <li>Implemented comprehensive data governance procedures with audit trails, data lineage tracking, and quality validation across distributed systems</li>
+              <li>Created automated reporting systems with intelligent alerting and threshold management reducing manual analysis overhead by 85%</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">WooliesX (Big W / Everyday Rewards)</span>
+              <span class="heading-minor">April 2024 – December 2024</span>
+            </div>
+            <div class="heading-secondary">Senior Performance & Optimisation Analyst</div>
+            <ul>
+              <li>Consolidated and validated data from 6+ enterprise systems (SharePoint, cloud platforms, internal databases) processing 5-10GB datasets to support enterprise-level reporting across 5 business units</li>
+              <li>Developed advanced financial forecasting system managing $52.3M in annual costs achieving 97.8% accuracy using sophisticated DAX-equivalent calculations and predictive modelling techniques</li>
+              <li>Built 18-metric executive KPI dashboard with Power Query-equivalent ETL processing 170M+ customer transactions, implementing automated variance analysis and threshold alerting</li>
+              <li>Designed and maintained interactive Power BI dashboards for machine learning campaign optimisation tracking 3,432 data points across 286 unique campaigns with drill-down capabilities</li>
+              <li>Implemented comprehensive data quality validation frameworks ensuring consistency and traceability across all reporting activities with automated error detection</li>
+              <li>Partnered with PMO leads, project teams, and C-suite executives to translate complex data analysis into clear, actionable insights enabling proactive decision-making</li>
+              <li>Established data governance standards and audit trail systems ensuring regulatory compliance and complete data lineage documentation</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Sydney Trains</span>
+              <span class="heading-minor">June 2021 – December 2023</span>
+            </div>
+            <div class="heading-secondary">Senior Data Analyst</div>
+            <ul>
+              <li>Consolidated transportation data from multiple internal and external sources supporting enterprise-level project reporting for 208.97K+ passenger impact analysis</li>
+              <li>Built sophisticated machine learning predictive models achieving 87% accuracy for passenger load forecasting with comprehensive data validation and performance tracking</li>
+              <li>Developed executive-level Power BI dashboards for C-suite stakeholders with automated report generation reducing manual reporting time by 60%</li>
+              <li>Implemented advanced SQL queries and data modelling techniques uncovering 4.5M additional passengers during fare-free periods through detailed analysis</li>
+              <li>Designed comprehensive ETL workflows integrating data from legacy systems, APIs, and cloud platforms ensuring data quality and regulatory compliance</li>
+              <li>Collaborated with cross-functional teams including operations, finance, and regulatory affairs to deliver insights supporting strategic decision-making</li>
+              <li>Established automated data validation frameworks with comprehensive audit trails meeting government reporting standards</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Woolworths Group</span>
+              <span class="heading-minor">June 2020 – June 2021</span>
+            </div>
+            <div class="heading-secondary">Senior Tableau Developer</div>
+            <ul>
+              <li>Re-built Planning & Performance dashboard system serving 300+ daily users across 1,000+ stores consolidating data from workforce management systems and operational databases</li>
+              <li>Developed Post-Implementation Review dashboards evaluating automated rostering system effectiveness through advanced data visualisation and KPI tracking</li>
+              <li>Maintained data integrity and consistency during national system rollout ensuring accurate reporting across distributed retail operations</li>
+              <li>Implemented best practices in dashboard design, data modelling, and performance optimisation for enterprise-scale analytics platforms</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Prospa</span>
+              <span class="heading-minor">December 2019 – April 2020</span>
+            </div>
+            <div class="heading-secondary">Business Intelligence Analyst</div>
+            <ul>
+              <li>Built cross-functional Tableau dashboards consolidating data from Snowflake, Databricks, and Azure cloud platforms supporting marketing, operations, sales, and finance teams</li>
+              <li>Implemented cloud-native data integration pipelines with automated CI/CD deployment ensuring consistent data quality and system performance</li>
+              <li>Developed analytical frameworks for fee amortisation and default detection with real-time reporting supporting risk management decisions</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Equifax</span>
+              <span class="heading-minor">September 2016 – August 2019</span>
+            </div>
+            <div class="heading-secondary">Data Scientist (Client Analytics)</div>
+            <ul>
+              <li>Developed predictive models achieving 3.9× performance uplift for voter prediction (13 models) and 1.8× uplift for AMEX Platinum propensity modelling</li>
+              <li>Built location performance analytics framework for Domino's achieving 70-80% accuracy across 4 international markets using advanced statistical techniques</li>
+              <li>Consolidated and modelled data from multiple sources including APIs, databases, and external datasets for comprehensive client reporting</li>
+              <li>Partnered with external stakeholders including major financial institutions and retail clients to deliver customised analytical solutions</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Key Data Integration & Analytics Projects</div>
+          <div class="block">
+            <div class="project-header">
+              <span class="heading-primary">Enterprise Loyalty Program Analytics</span>
+              <span class="project-impact">$52.3M forecasting • 170M+ transactions • 97.8% accuracy</span>
+            </div>
+            <ul>
+              <li>Consolidated data from 6+ enterprise systems (SharePoint, Microsoft Lists, cloud platforms, internal databases) processing 5-10GB datasets supporting comprehensive financial reporting</li>
+              <li>Developed sophisticated Power BI dashboards with advanced DAX calculations for 18 executive KPIs enabling proactive decision-making across 5 business units</li>
+              <li>Implemented automated variance analysis and threshold alerting reducing manual reporting overhead by 85% while maintaining 97.8% forecasting accuracy</li>
+              <li>Designed comprehensive data quality validation frameworks ensuring consistency, traceability, and regulatory compliance across all reporting activities</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="project-header">
+              <span class="heading-primary">Transportation Data Analytics Platform</span>
+              <span class="project-impact">208K passengers • 87% ML accuracy • C-suite reporting</span>
+            </div>
+            <ul>
+              <li>Integrated transportation data from multiple internal and external sources supporting enterprise-level impact analysis and regulatory reporting</li>
+              <li>Built executive Power BI dashboards for C-suite stakeholders with automated report generation and drill-down capabilities reducing manual effort by 60%</li>
+              <li>Developed machine learning predictive models achieving 87% accuracy through advanced data modelling and statistical analysis techniques</li>
+              <li>Established comprehensive ETL workflows with data quality validation and audit trails meeting government compliance standards</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="project-header">
+              <span class="heading-primary">Enterprise Retail Analytics System</span>
+              <span class="project-impact">300+ daily users • 1,000+ stores • National rollout</span>
+            </div>
+            <ul>
+              <li>Re-built Planning & Performance Tableau dashboard system consolidating workforce management and operational data across distributed retail operations</li>
+              <li>Implemented best practices in data visualisation, performance optimisation, and data modelling supporting enterprise-scale analytics requirements</li>
+              <li>Maintained data integrity and consistency during national system implementation ensuring accurate reporting across all business units</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-aside">
+        <div class="section">
+          <div class="section-title">Core Technical Skills</div>
+          <div class="skills-category">
+            <div class="skill-category-title">Data Visualisation & BI</div>
+            <ul class="skills-list">
+              <li>Power BI (Advanced)</li>
+              <li>Tableau (Advanced)</li>
+              <li>Interactive Dashboard Development</li>
+              <li>Data Visualisation Best Practices</li>
+              <li>Executive Reporting & KPI Design</li>
+              <li>Real-time Data Dashboards</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Advanced Analytics</div>
+            <ul class="skills-list">
+              <li>DAX (Data Analysis Expressions)</li>
+              <li>Power Query / M Language</li>
+              <li>Advanced SQL (100M+ records)</li>
+              <li>Data Modelling & Schema Design</li>
+              <li>Statistical Analysis & Forecasting</li>
+              <li>Predictive Modelling (87-98% accuracy)</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Data Integration & ETL</div>
+            <ul class="skills-list">
+              <li>Multi-Source Data Consolidation</li>
+              <li>ETL/ELT Pipeline Development</li>
+              <li>API Integration & Data Extraction</li>
+              <li>Cloud Platform Data Integration</li>
+              <li>Data Quality Validation</li>
+              <li>Automated Data Refresh Systems</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Database & Cloud Technologies</div>
+          <div class="skills-category">
+            <div class="skill-category-title">Databases</div>
+            <ul class="skills-list">
+              <li>SQL (PostgreSQL, MySQL)</li>
+              <li>BigQuery, Snowflake</li>
+              <li>Database Performance Optimisation</li>
+              <li>Complex Query Development</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Cloud & Platforms</div>
+            <ul class="skills-list">
+              <li>Microsoft Azure</li>
+              <li>Google Cloud Platform</li>
+              <li>AWS</li>
+              <li>SharePoint & Microsoft Lists</li>
+              <li>Power Automate</li>
+              <li>Cloud-native Data Integration</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Programming & Automation</div>
+          <ul class="skills-list">
+            <li>Python (pandas, scikit-learn)</li>
+            <li>R (statistical analysis, ggplot2)</li>
+            <li>Excel (Advanced formulas, VBA)</li>
+            <li>PowerShell / Bash scripting</li>
+            <li>Automated Report Generation</li>
+            <li>Process Automation</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Data Governance & Quality</div>
+          <ul class="skills-list">
+            <li>Data Quality Frameworks</li>
+            <li>Data Governance Implementation</li>
+            <li>Audit Trail & Lineage Tracking</li>
+            <li>Compliance & Regulatory Reporting</li>
+            <li>Data Validation & Testing</li>
+            <li>Documentation & Standards</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Stakeholder Management</div>
+          <ul class="skills-list">
+            <li>C-suite Executive Reporting</li>
+            <li>Cross-functional Collaboration</li>
+            <li>PMO Partnership</li>
+            <li>Technical Communication</li>
+            <li>Requirements Gathering</li>
+            <li>Change Management Support</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Education</div>
+          <div class="block">
+            <div class="heading-primary">BACHELOR OF COMMERCE</div>
+            <div class="heading-secondary">Macquarie University</div>
+            <div class="heading-minor">Economics • Marketing • Statistics</div>
+          </div>
+          <div class="block">
+            <div class="heading-primary">DIPLOMA OF BUSINESS</div>
+            <div class="heading-secondary">North Sydney Institute of TAFE</div>
+            <div class="heading-minor">Marketing</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Certifications</div>
+          <div class="block">
+            <div class="heading-primary">DATA MANIPULATION IN PYTHON</div>
+            <div class="heading-minor">Udemy • 2024</div>
+          </div>
+          <div class="block">
+            <div class="heading-primary">COMPUTING IN PYTHON I & II</div>
+            <div class="heading-minor">Georgia Tech • 2020</div>
+          </div>
+          <div class="block">
+            <div class="heading-primary">PREDICTIVE MODELLING (SAS)</div>
+            <div class="heading-minor">SAS Institute • 2017</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Key Differentiators</div>
+          <ul class="skills-list">
+            <li><strong>Proven Scale:</strong> 170M+ transactions, $52.3M+ financial management</li>
+            <li><strong>High Accuracy:</strong> 97.8% forecasting precision, 87% ML accuracy</li>
+            <li><strong>Enterprise Experience:</strong> Government, retail, financial services</li>
+            <li><strong>Continuous Improvement:</strong> 85% reduction in manual reporting, 60% time savings</li>
+            <li><strong>Hybrid Expertise:</strong> Technical depth with business communication</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Industry Experience</div>
+          <div class="skills-category">
+            <div class="skill-category-title">Government & Public Sector</div>
+            <ul class="skills-list">
+              <li>Sydney Trains (Transportation)</li>
+              <li>Regulatory Compliance</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Retail & E-commerce</div>
+            <ul class="skills-list">
+              <li>Woolworths Group, WooliesX, Big W</li>
+              <li>Loyalty Program Analytics</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Financial Services</div>
+            <ul class="skills-list">
+              <li>Equifax, Prospa</li>
+              <li>Risk Analytics & Forecasting</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

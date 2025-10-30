@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import Button from '../components/Button';
 import ProgressBar from '../components/ProgressBar';
@@ -19,17 +19,38 @@ function GeneratePage() {
   const [error, setError] = useState('');
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState('');
+  const [logs, setLogs] = useState([]);
+  const logsEndRef = useRef(null);
 
   useEffect(() => {
     window.electronAPI.onGenerationProgress((data) => {
       setProgress(data.progress || 0);
       setStage(data.stage || '');
+
+      if (data.log) {
+        setLogs((prev) => {
+          const timestamp = new Date().toLocaleTimeString('en-AU', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+          return [...prev, { time: timestamp, message: data.log }];
+        });
+      }
     });
 
     return () => {
       window.electronAPI.removeGenerationProgressListener();
     };
   }, []);
+
+  // Auto-scroll to bottom when new logs arrive
+  useEffect(() => {
+    if (logsEndRef.current) {
+      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
 
   const handleGenerate = async () => {
     if (!canProceedToGenerate()) {
@@ -40,6 +61,7 @@ function GeneratePage() {
     setIsGenerating(true);
     setError('');
     setProgress(0);
+    setLogs([]);
 
     try {
       const result = await window.electronAPI.generateTailoredResume({
@@ -109,15 +131,26 @@ function GeneratePage() {
             />
 
             <div className="bg-slate-900 p-4 rounded border border-slate-600">
-              <h4 className="text-sm font-semibold mb-2">What's happening:</h4>
-              <ul className="text-xs text-gray-400 space-y-1">
-                <li>• Analyzing job requirements for key skills and qualifications</li>
-                <li>• Querying database for matching achievements</li>
-                <li>• Selecting most relevant experiences and metrics</li>
-                <li>• Optimizing for ATS (Applicant Tracking Systems)</li>
-                <li>• Maintaining Australian English compliance</li>
-                <li>• Generating personalized recruiter message</li>
-              </ul>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold">Console Output:</h4>
+                <span className="text-xs text-gray-500">
+                  {logs.length} log{logs.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <div className="bg-black/40 rounded p-3 max-h-64 overflow-y-auto font-mono text-xs">
+                {logs.length === 0 ? (
+                  <div className="text-gray-500 italic">Waiting for process to start...</div>
+                ) : (
+                  <div className="space-y-1">
+                    {logs.map((log, index) => (
+                      <div key={index} className="text-green-400">
+                        <span className="text-gray-500">[{log.time}]</span> {log.message}
+                      </div>
+                    ))}
+                    <div ref={logsEndRef} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ) : (
