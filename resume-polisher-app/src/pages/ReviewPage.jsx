@@ -18,6 +18,10 @@ function ReviewPage() {
   const [editedMessage, setEditedMessage] = useState(recruiterMessage);
   const [editedHtml, setEditedHtml] = useState(tailoredHtml);
   const [viewMode, setViewMode] = useState('preview'); // 'preview' or 'edit'
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [recruiterCollapsed, setRecruiterCollapsed] = useState(false);
+  const [infoCollapsed, setInfoCollapsed] = useState(false);
+  const [stepsCollapsed, setStepsCollapsed] = useState(true);
 
   const handleSaveHTML = async () => {
     setIsSaving(true);
@@ -77,175 +81,221 @@ function ReviewPage() {
     setTimeout(() => setSaveStatus(''), 3000);
   };
 
-  return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">Review & Export</h2>
-        <p className="text-gray-400">
-          Review your tailored resume and export it
-        </p>
-      </div>
+  const handleSaveBoth = async () => {
+    await handleSaveHTML();
+    await handleExportPDF();
+  };
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Resume Preview/Editor */}
-        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold">Tailored Resume</h3>
-              <div className="flex gap-1 bg-slate-700 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('preview')}
-                  className={`px-3 py-1 text-xs rounded transition ${
-                    viewMode === 'preview'
-                      ? 'bg-primary-500 text-white'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  Preview
-                </button>
-                <button
-                  onClick={() => setViewMode('edit')}
-                  className={`px-3 py-1 text-xs rounded transition ${
-                    viewMode === 'edit'
-                      ? 'bg-primary-500 text-white'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  Edit
-                </button>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSaveHTML}
-                loading={isSaving}
-                size="sm"
-                icon="💾"
+  return (
+    <div className="h-full flex flex-col">
+      {/* Top Toolbar */}
+      <div className="bg-slate-800 border-b border-slate-700 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-bold">Review & Export</h2>
+            <div className="flex gap-1 bg-slate-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('preview')}
+                className={`px-4 py-2 text-sm rounded transition ${
+                  viewMode === 'preview'
+                    ? 'bg-primary-500 text-white'
+                    : 'text-slate-300 hover:text-white'
+                }`}
               >
-                Save HTML
-              </Button>
-              <Button
-                onClick={handleExportPDF}
-                loading={isExportingPDF}
-                size="sm"
-                variant="secondary"
-                icon="📄"
+                👁️ Preview
+              </button>
+              <button
+                onClick={() => setViewMode('edit')}
+                className={`px-4 py-2 text-sm rounded transition ${
+                  viewMode === 'edit'
+                    ? 'bg-primary-500 text-white'
+                    : 'text-slate-300 hover:text-white'
+                }`}
               >
-                Export PDF
-              </Button>
+                ✏️ Edit
+              </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto bg-white">
-            {viewMode === 'preview' ? (
-              <iframe
-                srcDoc={editedHtml}
-                className="w-full h-full min-h-[600px]"
-                title="Resume Preview"
-                sandbox="allow-same-origin"
-              />
-            ) : (
-              <ResumeEditor
-                initialHtml={editedHtml}
-                onHtmlChange={setEditedHtml}
-              />
-            )}
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              size="sm"
+              variant="secondary"
+              icon={sidebarOpen ? '👉' : '👈'}
+            >
+              {sidebarOpen ? 'Hide' : 'Show'} Panel
+            </Button>
+            <Button
+              onClick={handleSaveHTML}
+              loading={isSaving}
+              size="sm"
+              icon="💾"
+            >
+              Save HTML
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              loading={isExportingPDF}
+              size="sm"
+              variant="secondary"
+              icon="📄"
+            >
+              Export PDF
+            </Button>
+            <Button
+              onClick={handleSaveBoth}
+              loading={isSaving || isExportingPDF}
+              size="sm"
+              icon="💾"
+            >
+              Save Both
+            </Button>
+            <Button
+              onClick={resetForNewJob}
+              variant="ghost"
+              size="sm"
+              icon="🔄"
+            >
+              New Job
+            </Button>
           </div>
         </div>
 
-        {/* Recruiter Message */}
-        <div className="space-y-6">
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Recruiter Message</h3>
-              <Button
-                onClick={handleCopyMessage}
-                size="sm"
-                variant="secondary"
-                icon="📋"
+        {/* Status Bar */}
+        {saveStatus && (
+          <div className={`mt-3 p-2 rounded text-sm ${
+            saveStatus.startsWith('✓')
+              ? 'bg-green-900/30 border border-green-700 text-green-300'
+              : 'bg-red-900/30 border border-red-700 text-red-300'
+          }`}>
+            {saveStatus}
+          </div>
+        )}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Resume Preview/Editor - Takes full width when sidebar closed */}
+        <div className={`flex-1 bg-white overflow-hidden transition-all ${
+          sidebarOpen ? '' : 'w-full'
+        }`}>
+          {viewMode === 'preview' ? (
+            <iframe
+              srcDoc={editedHtml}
+              className="w-full h-full"
+              title="Resume Preview"
+              sandbox="allow-same-origin"
+            />
+          ) : (
+            <ResumeEditor
+              initialHtml={editedHtml}
+              onHtmlChange={setEditedHtml}
+            />
+          )}
+        </div>
+
+        {/* Collapsible Right Sidebar */}
+        {sidebarOpen && (
+          <div className="w-96 border-l border-slate-700 bg-slate-900 overflow-y-auto flex-shrink-0">
+            {/* Recruiter Message - Collapsible */}
+            <div className="border-b border-slate-700">
+              <button
+                onClick={() => setRecruiterCollapsed(!recruiterCollapsed)}
+                className="w-full p-4 flex items-center justify-between hover:bg-slate-800 transition"
               >
-                Copy
-              </Button>
+                <h3 className="text-lg font-semibold">Recruiter Message</h3>
+                <span className="text-xl">
+                  {recruiterCollapsed ? '▼' : '▲'}
+                </span>
+              </button>
+
+              {!recruiterCollapsed && (
+                <div className="p-4 pt-0">
+                  <div className="mb-3">
+                    <div className="text-xs text-slate-400 mb-2">
+                      Subject: Application for Senior Data Analyst - Sydney
+                    </div>
+                    <textarea
+                      value={editedMessage}
+                      onChange={(e) => setEditedMessage(e.target.value)}
+                      className="w-full h-64 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white text-sm resize-none"
+                      placeholder="Edit the recruiter message..."
+                    />
+                    <p className="text-xs text-slate-500 mt-2">
+                      You can edit this message before copying it
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleCopyMessage}
+                    size="sm"
+                    variant="secondary"
+                    icon="📋"
+                    className="w-full"
+                  >
+                    Copy Message
+                  </Button>
+                </div>
+              )}
             </div>
 
-            <textarea
-              value={editedMessage}
-              onChange={(e) => setEditedMessage(e.target.value)}
-              className="w-full h-48 px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white resize-none"
-              placeholder="Edit the recruiter message..."
-            />
+            {/* Generation Info - Collapsible */}
+            <div className="border-b border-slate-700">
+              <button
+                onClick={() => setInfoCollapsed(!infoCollapsed)}
+                className="w-full p-4 flex items-center justify-between hover:bg-slate-800 transition"
+              >
+                <h3 className="text-lg font-semibold">Generation Info</h3>
+                <span className="text-xl">
+                  {infoCollapsed ? '▼' : '▲'}
+                </span>
+              </button>
 
-            <p className="text-xs text-gray-500 mt-2">
-              You can edit this message before copying it
-            </p>
-          </div>
+              {!infoCollapsed && (
+                <div className="p-4 pt-0 space-y-3 text-sm">
+                  <div>
+                    <div className="text-slate-400 text-xs mb-1">Generated:</div>
+                    <div className="text-white">
+                      {new Date(generatedAt).toLocaleString()}
+                    </div>
+                  </div>
 
-          {/* Metadata */}
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <h3 className="text-lg font-semibold mb-4">Generation Info</h3>
-
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="text-gray-400">Generated:</span>
-                <div className="text-white mt-1">
-                  {new Date(generatedAt).toLocaleString()}
+                  <div>
+                    <div className="text-slate-400 text-xs mb-1">Output Directory:</div>
+                    <div className="text-white font-mono text-xs break-all bg-slate-800 p-2 rounded">
+                      {outputDirectory}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div>
-                <span className="text-gray-400">Output Directory:</span>
-                <div className="text-white mt-1 font-mono text-xs break-all">
-                  {outputDirectory}
-                </div>
-              </div>
+            {/* Next Steps - Collapsible */}
+            <div className="border-b border-slate-700">
+              <button
+                onClick={() => setStepsCollapsed(!stepsCollapsed)}
+                className="w-full p-4 flex items-center justify-between hover:bg-slate-800 transition"
+              >
+                <h3 className="text-lg font-semibold text-blue-300">Next Steps</h3>
+                <span className="text-xl">
+                  {stepsCollapsed ? '▼' : '▲'}
+                </span>
+              </button>
 
-              {saveStatus && (
-                <div className={`p-3 rounded ${
-                  saveStatus.startsWith('✓')
-                    ? 'bg-green-900/30 border border-green-700 text-green-300'
-                    : 'bg-red-900/30 border border-red-700 text-red-300'
-                }`}>
-                  {saveStatus}
+              {!stepsCollapsed && (
+                <div className="p-4 pt-0">
+                  <ol className="text-sm text-blue-200/80 space-y-2 list-decimal list-inside">
+                    <li>Review the tailored resume for accuracy</li>
+                    <li>Save or export the resume to your desired format</li>
+                    <li>Customize the recruiter message if needed</li>
+                    <li>Apply for the job with your tailored resume!</li>
+                  </ol>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Next Steps */}
-          <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
-            <h4 className="font-semibold mb-2 text-blue-300">Next Steps</h4>
-            <ol className="text-sm text-blue-200/80 space-y-1 list-decimal list-inside">
-              <li>Review the tailored resume for accuracy</li>
-              <li>Save or export the resume to your desired format</li>
-              <li>Customize the recruiter message if needed</li>
-              <li>Apply for the job with your tailored resume!</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 justify-between">
-        <Button
-          onClick={resetForNewJob}
-          variant="secondary"
-          icon="🔄"
-        >
-          Start New Job Application
-        </Button>
-
-        <div className="flex gap-3">
-          <Button
-            onClick={async () => {
-              await handleSaveHTML();
-              await handleExportPDF();
-            }}
-            loading={isSaving || isExportingPDF}
-            icon="💾"
-          >
-            Save Both (HTML + PDF)
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );
