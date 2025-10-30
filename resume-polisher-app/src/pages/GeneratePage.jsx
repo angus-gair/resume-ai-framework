@@ -20,7 +20,10 @@ function GeneratePage() {
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState('');
   const [logs, setLogs] = useState([]);
+  const [aiOutput, setAiOutput] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
   const logsEndRef = useRef(null);
+  const aiOutputEndRef = useRef(null);
 
   useEffect(() => {
     window.electronAPI.onGenerationProgress((data) => {
@@ -38,6 +41,20 @@ function GeneratePage() {
           return [...prev, { time: timestamp, message: data.log }];
         });
       }
+
+      // Handle streaming
+      if (data.streamStart) {
+        setIsStreaming(true);
+        setAiOutput('');
+      }
+
+      if (data.streamChunk) {
+        setAiOutput(prev => prev + data.streamChunk);
+      }
+
+      if (data.streamEnd) {
+        setIsStreaming(false);
+      }
     });
 
     return () => {
@@ -52,6 +69,13 @@ function GeneratePage() {
     }
   }, [logs]);
 
+  // Auto-scroll AI output when streaming
+  useEffect(() => {
+    if (aiOutputEndRef.current && isStreaming) {
+      aiOutputEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [aiOutput, isStreaming]);
+
   const handleGenerate = async () => {
     if (!canProceedToGenerate()) {
       setError('Missing required configuration. Please complete previous steps.');
@@ -62,6 +86,8 @@ function GeneratePage() {
     setError('');
     setProgress(0);
     setLogs([]);
+    setAiOutput('');
+    setIsStreaming(false);
 
     try {
       const result = await window.electronAPI.generateTailoredResume({
@@ -131,27 +157,62 @@ function GeneratePage() {
               label="Generating tailored resume"
             />
 
-            <div className="bg-slate-900 p-4 rounded border border-slate-600">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold">Console Output:</h4>
-                <span className="text-xs text-gray-500">
-                  {logs.length} log{logs.length !== 1 ? 's' : ''}
-                </span>
+            <div className="space-y-4">
+              {/* Console Logs */}
+              <div className="bg-slate-900 p-4 rounded border border-slate-600">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold">Console Output:</h4>
+                  <span className="text-xs text-gray-500">
+                    {logs.length} log{logs.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="bg-black/40 rounded p-3 max-h-48 overflow-y-auto font-mono text-xs">
+                  {logs.length === 0 ? (
+                    <div className="text-gray-500 italic">Waiting for process to start...</div>
+                  ) : (
+                    <div className="space-y-1">
+                      {logs.map((log, index) => (
+                        <div key={index} className="text-green-400">
+                          <span className="text-gray-500">[{log.time}]</span> {log.message}
+                        </div>
+                      ))}
+                      <div ref={logsEndRef} />
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="bg-black/40 rounded p-3 max-h-64 overflow-y-auto font-mono text-xs">
-                {logs.length === 0 ? (
-                  <div className="text-gray-500 italic">Waiting for process to start...</div>
-                ) : (
-                  <div className="space-y-1">
-                    {logs.map((log, index) => (
-                      <div key={index} className="text-green-400">
-                        <span className="text-gray-500">[{log.time}]</span> {log.message}
-                      </div>
-                    ))}
-                    <div ref={logsEndRef} />
+
+              {/* AI Live Output */}
+              {(isStreaming || aiOutput) && (
+                <div className="bg-slate-900 p-4 rounded border border-slate-600">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      🤖 AI Output:
+                      {isStreaming && (
+                        <span className="flex items-center gap-1 text-xs text-cyan-400">
+                          <span className="animate-pulse">●</span> Streaming...
+                        </span>
+                      )}
+                    </h4>
+                    <span className="text-xs text-gray-500">
+                      {aiOutput.length.toLocaleString()} chars
+                    </span>
                   </div>
-                )}
-              </div>
+                  <div className="bg-black/40 rounded p-3 max-h-96 overflow-y-auto font-mono text-xs">
+                    {aiOutput ? (
+                      <div>
+                        <div className="text-cyan-300 whitespace-pre-wrap break-words">
+                          {aiOutput}
+                          {isStreaming && <span className="animate-pulse">▊</span>}
+                        </div>
+                        <div ref={aiOutputEndRef} />
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 italic">Waiting for AI to start generating...</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (

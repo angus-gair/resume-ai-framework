@@ -501,17 +501,51 @@ IMPORTANT OUTPUT FORMAT:
       log: 'Waiting for AI to analyze requirements and select matching achievements...'
     });
 
-    const message = await anthropicClient.messages.create({
+    // Use streaming API to show real-time generation
+    let fullText = '';
+    let inputTokens = 0;
+    let outputTokens = 0;
+
+    mainWindow.webContents.send('generation-progress', {
+      stage: 'generating',
+      progress: 50,
+      log: 'Claude is now analyzing and generating...',
+      streamStart: true
+    });
+
+    const stream = await anthropicClient.messages.stream({
       model: 'claude-sonnet-4-5',
       max_tokens: 8000,
       messages: [{ role: 'user', content: prompt }]
     });
 
+    for await (const chunk of stream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+        const text = chunk.delta.text;
+        fullText += text;
+
+        // Send streaming chunk to frontend
+        mainWindow.webContents.send('generation-progress', {
+          stage: 'generating',
+          progress: Math.min(50 + (fullText.length / 200), 70),
+          streamChunk: text,
+          streamLength: fullText.length
+        });
+      } else if (chunk.type === 'message_start') {
+        inputTokens = chunk.message.usage.input_tokens;
+      } else if (chunk.type === 'message_delta') {
+        outputTokens = chunk.usage.output_tokens;
+      }
+    }
+
     mainWindow.webContents.send('generation-progress', {
       stage: 'generating',
       progress: 70,
-      log: `AI response received (${message.content[0].text.length} characters)`
+      log: `AI response received (${fullText.length} characters)`,
+      streamEnd: true
     });
+
+    const message = { content: [{ text: fullText }], usage: { input_tokens: inputTokens, output_tokens: outputTokens } };
 
     mainWindow.webContents.send('generation-progress', {
       stage: 'finalizing',
@@ -556,7 +590,8 @@ IMPORTANT OUTPUT FORMAT:
     mainWindow.webContents.send('generation-progress', {
       stage: 'message',
       progress: 85,
-      log: 'Generating personalized recruiter message...'
+      log: 'Generating personalized recruiter message...',
+      streamStart: true
     });
 
     const messagePrompt = `Based on these position requirements, write a short, professional message (3-4 sentences) to send to the recruiter expressing interest in the role. Be specific about matching qualifications. Use Australian English.
@@ -566,17 +601,42 @@ ${requirements}
 
 Keep it concise, confident, and professional.`;
 
-    const recruiterMessage = await anthropicClient.messages.create({
+    let recruiterText = '';
+    let recruiterInputTokens = 0;
+    let recruiterOutputTokens = 0;
+
+    const recruiterStream = await anthropicClient.messages.stream({
       model: 'claude-sonnet-4-5',
       max_tokens: 1000,
       messages: [{ role: 'user', content: messagePrompt }]
     });
 
+    for await (const chunk of recruiterStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+        const text = chunk.delta.text;
+        recruiterText += text;
+
+        mainWindow.webContents.send('generation-progress', {
+          stage: 'message',
+          progress: Math.min(85 + (recruiterText.length / 50), 95),
+          streamChunk: text,
+          streamLength: recruiterText.length
+        });
+      } else if (chunk.type === 'message_start') {
+        recruiterInputTokens = chunk.message.usage.input_tokens;
+      } else if (chunk.type === 'message_delta') {
+        recruiterOutputTokens = chunk.usage.output_tokens;
+      }
+    }
+
     mainWindow.webContents.send('generation-progress', {
       stage: 'message',
       progress: 95,
-      log: 'Recruiter message generated successfully'
+      log: 'Recruiter message generated successfully',
+      streamEnd: true
     });
+
+    const recruiterMessage = { content: [{ text: recruiterText }], usage: { input_tokens: recruiterInputTokens, output_tokens: recruiterOutputTokens } };
 
     mainWindow.webContents.send('generation-progress', {
       stage: 'complete',
