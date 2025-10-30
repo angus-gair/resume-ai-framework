@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANGUS JAMES - Senior Data Analyst (APS6 Monitoring Analyst)</title>
+
+  <style>
+    :root {
+      --accent-color: #1565C0;
+      --accent-light: #E3F2FD;
+      --font-family: 'Segoe UI', 'Open Sans', Arial, sans-serif;
+      --font-size-body: 10pt;
+      --font-size-small: 9pt;
+      --font-size-heading: 11pt;
+      --font-size-name: 28pt;
+      --font-weight-normal: 400;
+      --font-weight-bold: 600;
+      --line-height: 1.5;
+      --padding: 0.5in;
+      --spacing-xs: 2pt;
+      --spacing-small: 4pt;
+      --spacing-medium: 8pt;
+      --spacing-large: 16pt;
+      --bullet-char: '▸';
+      --color-text: #212121;
+      --color-secondary: #424242;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      color: var(--color-text);
+      font-weight: var(--font-weight-normal);
+      font-size: var(--font-size-body);
+      font-family: var(--font-family);
+      line-height: var(--line-height);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      padding: var(--padding);
+      width: 10.5in;
+      min-height: 11in;
+      background-color: white;
+      position: relative;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-medium);
+      padding-bottom: var(--spacing-medium);
+      border-bottom: 2px solid var(--accent-color);
+    }
+
+    .header-primary {
+      flex: 1;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: baseline;
+      gap: 1em;
+    }
+
+    .full-name {
+      color: var(--accent-color);
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-name);
+      line-height: 1;
+    }
+
+    .title {
+      font-size: calc(var(--font-size-heading) + 2pt);
+      color: var(--color-secondary);
+      font-weight: var(--font-weight-normal);
+    }
+
+    .contact-details {
+      display: flex;
+      gap: 1em;
+      font-size: var(--font-size-small);
+      color: var(--color-secondary);
+    }
+
+    .contact-details span:not(:last-child)::after {
+      content: '|';
+      margin-left: 1em;
+      color: #BDBDBD;
+    }
+
+    .content {
+      display: flex;
+      gap: 3%;
+    }
+
+    .col-main {
+      flex: 0 0 67%;
+    }
+
+    .col-aside {
+      flex: 0 0 30%;
+    }
+
+    .section {
+      margin-bottom: var(--spacing-large);
+    }
+
+    .section-title {
+      text-transform: uppercase;
+      color: var(--accent-color);
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-heading);
+      border-bottom: 1px solid var(--accent-light);
+      margin-bottom: var(--spacing-medium);
+      padding-bottom: 2pt;
+      letter-spacing: 0.5pt;
+    }
+
+    .block {
+      margin-bottom: var(--spacing-large);
+      margin-top: var(--spacing-medium);
+    }
+
+    .block-heading {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .heading-primary {
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-heading);
+      color: var(--color-text);
+    }
+
+    .heading-secondary {
+      font-size: var(--font-size-body);
+      color: var(--color-secondary);
+      font-style: italic;
+    }
+
+    .heading-minor {
+      font-size: var(--font-size-small);
+      color: var(--color-secondary);
+    }
+
+    .col-main .heading-minor {
+      font-weight: var(--font-weight-bold);
+    }
+
+    .professional-summary {
+      font-size: var(--font-size-body);
+      color: var(--color-text);
+      margin-bottom: var(--spacing-medium);
+      line-height: 1.6;
+    }
+
+    ul {
+      list-style: none;
+      margin-left: 0;
+    }
+
+    li {
+      position: relative;
+      margin-bottom: var(--spacing-small);
+      padding-left: 16pt;
+      line-height: 1.4;
+    }
+
+    li:before {
+      content: var(--bullet-char);
+      position: absolute;
+      left: 0;
+      color: var(--accent-color);
+    }
+
+    .skills-category {
+      margin-bottom: var(--spacing-large);
+    }
+
+    .skill-category-title {
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-small);
+      color: var(--color-text);
+      margin-bottom: var(--spacing-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.3pt;
+    }
+
+    .skills-list {
+      font-size: var(--font-size-small);
+    }
+
+    .skills-list li {
+      margin-bottom: 2pt;
+      padding-left: 12pt;
+    }
+
+    .col-aside .heading-primary {
+      font-size: var(--font-size-small);
+    }
+
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .project-impact {
+      font-size: var(--font-size-small);
+      color: var(--accent-color);
+      font-weight: var(--font-weight-bold);
+    }
+
+    a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .page {
+        width: 9in;
+        padding: 0.5in;
+        min-height: auto;
+      }
+    }
+
+    @media screen {
+      body {
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        padding: 2rem 0;
+      }
+
+      .page {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 9in;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <!-- HEADER SECTION -->
+    <div class="header">
+      <div class="header-primary">
+        <div class="header-content">
+          <span class="full-name">ANGUS JAMES</span>
+          <span class="title">Senior Data Analyst & Monitoring Specialist</span>
+        </div>
+        <div class="contact-details">
+          <span>Sydney, NSW (eligible for ACT relocation)</span>
+          <span>(02) 8201 3710</span>
+          <span>angus@ajinsights.com.au</span>
+          <span><a href="https://www.ajinsights.com.au">ajinsights.com.au</a></span>
+          <span><a href="https://github.com/angus-gair">github.com/angus-gair</a></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+      <!-- LEFT COLUMN -->
+      <div class="col-main">
+        <div class="section">
+          <div class="section-title">Professional Summary</div>
+          <div class="professional-summary">
+            Senior Data Analyst and Infrastructure Monitoring Specialist with 8+ years of experience in enterprise systems monitoring, data analytics, and process optimisation across government, retail, and financial services. Proven expertise in designing comprehensive monitoring solutions using advanced analytics tools, building automated alerting systems, and conducting root cause analysis for complex infrastructure issues. Demonstrated capability in stakeholder management and translating technical insights into actionable business recommendations. Australian citizen eligible for Baseline Security Clearance.
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Professional Experience</div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">AJ Insights</span>
+              <span class="heading-minor">December 2024 – Present</span>
+            </div>
+            <div class="heading-secondary">Founder & Lead Infrastructure Monitoring Engineer</div>
+            <ul>
+              <li>Engineered revolutionary 4-Agent-Fix troubleshooting framework achieving 23-minute average resolution time versus industry standard of 4-8 hours with 100% first-time fix rate</li>
+              <li>Built comprehensive enterprise monitoring platform with 13 custom dashboards covering Windows, WSL, Docker, and multi-cloud infrastructure environments</li>
+              <li>Implemented dual-layer security monitoring integrating Windows Firewall and Linux UFW with AI-powered rule suggestions and automated threat detection</li>
+              <li>Developed production-grade monitoring exporters generating 60+ specialised time series metrics with sub-100ms API response times</li>
+              <li>Created comprehensive observability stack using Prometheus, Grafana, and Loki achieving 99.9% uptime targets with automated alerting and escalation procedures</li>
+              <li>Established zero-downtime deployment procedures with automated testing frameworks and comprehensive health monitoring across distributed services</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">WooliesX (Big W / Everyday Rewards)</span>
+              <span class="heading-minor">April 2024 – December 2024</span>
+            </div>
+            <div class="heading-secondary">Senior Performance & Optimisation Analyst</div>
+            <ul>
+              <li>Built comprehensive monitoring and alerting system for enterprise-scale loyalty program processing 170M+ customer transactions across 5 business units</li>
+              <li>Developed advanced points cost forecasting system achieving 97.8% accuracy managing $52.3M in annual costs with automated variance analysis and threshold alerting</li>
+              <li>Implemented sophisticated ETL monitoring framework processing 5-10GB datasets from 6+ enterprise systems with comprehensive data quality validation</li>
+              <li>Created 18-metric executive KPI dashboard with automated threshold monitoring and escalation procedures supporting strategic decision-making</li>
+              <li>Designed real-time performance monitoring for machine learning optimization campaigns processing 3,432 data points across 286 unique campaigns</li>
+              <li>Established comprehensive logging and audit trail systems ensuring regulatory compliance and complete data lineage tracking</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Sydney Trains</span>
+              <span class="heading-minor">June 2021 – December 2023</span>
+            </div>
+            <div class="heading-secondary">Senior Data Analyst</div>
+            <ul>
+              <li>Built sophisticated machine learning monitoring system achieving 87% accuracy for passenger load predictions with comprehensive model performance tracking</li>
+              <li>Developed comprehensive industrial action impact monitoring dashboard categorising 208.97K impacted travellers with real-time alerting capabilities</li>
+              <li>Implemented automated regulatory compliance monitoring with comprehensive audit trails ensuring adherence to protected industrial action requirements</li>
+              <li>Created enterprise KPI monitoring system for C-suite executives with automated report generation reducing manual reporting time by 60%</li>
+              <li>Designed advanced passenger weight prediction models with continuous monitoring uncovering 4.5M additional passengers during fare-free periods</li>
+              <li>Established production-ready ETL monitoring workflows with comprehensive error handling and automated recovery procedures</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Woolworths Group</span>
+              <span class="heading-minor">June 2020 – June 2021</span>
+            </div>
+            <div class="heading-secondary">Senior Tableau Developer</div>
+            <ul>
+              <li>Re-built Planning & Performance dashboard monitoring system serving 300+ daily users across 1,000+ stores with comprehensive health checking</li>
+              <li>Implemented Post-Implementation Review monitoring dashboard evaluating automated rostering system effectiveness with performance threshold alerting</li>
+              <li>Maintained data integrity monitoring during national rollout ensuring consistent performance across distributed systems</li>
+              <li>Established automated dashboard health monitoring with proactive alerting for system performance degradation</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Prospa</span>
+              <span class="heading-minor">December 2019 – April 2020</span>
+            </div>
+            <div class="heading-secondary">Business Intelligence Analyst</div>
+            <ul>
+              <li>Built cross-functional monitoring dashboards using Tableau with comprehensive system health tracking across marketing, operations, sales, and finance</li>
+              <li>Implemented cloud-native monitoring stack including Snowflake, Databricks, and Azure with automated CI/CD pipeline monitoring</li>
+              <li>Created analytical monitoring frameworks for fee amortisation and default detection with real-time alerting supporting risk management</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="block-heading">
+              <span class="heading-primary">Equifax</span>
+              <span class="heading-minor">September 2016 – August 2019</span>
+            </div>
+            <div class="heading-secondary">Data Scientist (Client Analytics)</div>
+            <ul>
+              <li>Developed comprehensive model monitoring system for 13 voter-prediction models achieving 3.9× performance uplift with continuous validation</li>
+              <li>Built Domino's location performance monitoring framework with 70–80% accuracy tracking across 4 international markets</li>
+              <li>Implemented automated model performance monitoring for AMEX Platinum propensity models with 1.8× uplift validation</li>
+              <li>Established comprehensive analytics pipeline monitoring with automated quality assurance and performance tracking</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Major Monitoring & Analytics Projects</div>
+          <div class="block">
+            <div class="project-header">
+              <span class="heading-primary">Enterprise Infrastructure Monitoring Platform</span>
+              <span class="project-impact">23-min resolution • 100% fix rate • 320-640% improvement</span>
+            </div>
+            <ul>
+              <li>Engineered comprehensive monitoring solution covering Windows, WSL, Docker, and multi-cloud environments with 13 custom dashboards</li>
+              <li>Implemented revolutionary 4-Agent-Fix methodology (Debugger, Deployment, Tester, Documenter) achieving 23-minute average resolution vs 4-8 hour industry standard</li>
+              <li>Built production-grade network monitoring with GlassWire integration, Wireshark deep packet inspection, and SNMP device monitoring</li>
+              <li>Created comprehensive security monitoring with dual-layer firewall intelligence and AI-powered rule suggestions</li>
+              <li>Established automated health checking with 99.9% uptime achievement and proactive issue detection</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="project-header">
+              <span class="heading-primary">Enterprise Loyalty Program Monitoring</span>
+              <span class="project-impact">$52.3M cost tracking • 97.8% accuracy • 170M+ transactions</span>
+            </div>
+            <ul>
+              <li>Built comprehensive monitoring system processing 170M+ customer transactions with real-time alerting and threshold management</li>
+              <li>Implemented advanced cost forecasting monitoring achieving 97.8% accuracy for $52.3M annual program costs</li>
+              <li>Created automated variance analysis with intelligent alerting reducing manual monitoring overhead by 85%</li>
+              <li>Designed multi-dimensional dashboard monitoring across 15+ business categories with drill-down capabilities</li>
+              <li>Established comprehensive audit trail monitoring ensuring regulatory compliance and data integrity validation</li>
+            </ul>
+          </div>
+          <div class="block">
+            <div class="project-header">
+              <span class="heading-primary">Transportation Analytics Monitoring System</span>
+              <span class="project-impact">87% ML accuracy • 208K passengers • Real-time dashboards</span>
+            </div>
+            <ul>
+              <li>Developed machine learning model monitoring achieving 87% accuracy for passenger load predictions with continuous performance validation</li>
+              <li>Built comprehensive industrial action impact monitoring categorising 208.97K passengers with real-time alerting</li>
+              <li>Implemented automated regulatory compliance monitoring with audit trail generation and threshold management</li>
+              <li>Created executive dashboard monitoring with automated report generation and performance trend analysis</li>
+              <li>Established production ETL monitoring with comprehensive error handling and automated recovery procedures</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-aside">
+        <div class="section">
+          <div class="section-title">Monitoring & Technical Skills</div>
+          <div class="skills-category">
+            <div class="skill-category-title">Monitoring & Operations</div>
+            <ul class="skills-list">
+              <li>Enterprise Infrastructure Monitoring</li>
+              <li>Prometheus, Grafana, Loki Observability Stack</li>
+              <li>System Health Monitoring & Alerting</li>
+              <li>Performance Monitoring & Optimisation</li>
+              <li>Root Cause Analysis & Troubleshooting</li>
+              <li>Dashboard Design & Implementation</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Data Analysis & Processing</div>
+            <ul class="skills-list">
+              <li>Advanced SQL (processing 100M+ records)</li>
+              <li>PostgreSQL, MySQL, BigQuery</li>
+              <li>ETL/ELT Pipeline Development</li>
+              <li>Data Quality Monitoring & Validation</li>
+              <li>Statistical Analysis & Forecasting</li>
+              <li>Analytical Functions & Windowing</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Log Data & Formats</div>
+            <ul class="skills-list">
+              <li>JSON, XML, CSV Processing</li>
+              <li>Plain Text Log Analysis</li>
+              <li>Structured & Unstructured Data</li>
+              <li>Real-time Log Streaming</li>
+              <li>Log Aggregation & Indexing</li>
+              <li>Pattern Recognition & Alerting</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Infrastructure & DevOps</div>
+            <ul class="skills-list">
+              <li>Docker & Container Monitoring</li>
+              <li>Cloud Platform Monitoring (AWS, Azure, GCP)</li>
+              <li>CI/CD Pipeline Monitoring</li>
+              <li>Network & Security Monitoring</li>
+              <li>Automated Health Checks</li>
+              <li>Incident Response & Escalation</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Programming & Automation</div>
+          <div class="skills-category">
+            <div class="skill-category-title">Programming Languages</div>
+            <ul class="skills-list">
+              <li>Python (pandas, scikit-learn, automation)</li>
+              <li>R (statistical analysis, ggplot2)</li>
+              <li>PowerShell (Windows automation)</li>
+              <li>Bash (Linux scripting)</li>
+              <li>JavaScript/TypeScript (web applications)</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Visualization & Reporting</div>
+            <ul class="skills-list">
+              <li>Tableau (Advanced) & Power BI</li>
+              <li>Interactive Dashboard Development</li>
+              <li>Real-time Data Visualization</li>
+              <li>Executive Reporting & KPI Design</li>
+              <li>Automated Report Generation</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Security & Compliance</div>
+          <ul class="skills-list">
+            <li>Baseline Security Clearance Eligible</li>
+            <li>Comprehensive Audit Trail Systems</li>
+            <li>Regulatory Compliance Monitoring</li>
+            <li>Security Event Detection & Response</li>
+            <li>Data Privacy & Protection</li>
+            <li>Risk Assessment & Mitigation</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Education</div>
+          <div class="block">
+            <div class="heading-primary">BACHELOR OF COMMERCE</div>
+            <div class="heading-secondary">Macquarie University</div>
+            <div class="heading-minor">Economics • Marketing • Statistics</div>
+          </div>
+          <div class="block">
+            <div class="heading-primary">DIPLOMA OF BUSINESS</div>
+            <div class="heading-secondary">North Sydney Institute of TAFE</div>
+            <div class="heading-minor">Marketing</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Certifications</div>
+          <div class="block">
+            <div class="heading-primary">DATA MANIPULATION IN PYTHON</div>
+            <div class="heading-minor">Udemy • 2024</div>
+          </div>
+          <div class="block">
+            <div class="heading-primary">COMPUTING IN PYTHON I & II</div>
+            <div class="heading-minor">Georgia Tech • 2020</div>
+          </div>
+          <div class="block">
+            <div class="heading-primary">PREDICTIVE MODELLING (SAS)</div>
+            <div class="heading-minor">SAS Institute • 2017</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Key Strengths</div>
+          <ul class="skills-list">
+            <li><strong>Proven Track Record:</strong> 8+ years monitoring complex enterprise systems</li>
+            <li><strong>Process Improvement:</strong> 320-640% troubleshooting efficiency gains</li>
+            <li><strong>Technical Communication:</strong> Translating complex technical concepts for stakeholders</li>
+            <li><strong>Australian Context:</strong> Extensive experience with Australian government and enterprise systems</li>
+            <li><strong>Stakeholder Management:</strong> C-level executive reporting and cross-functional collaboration</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Industry Experience</div>
+          <div class="skills-category">
+            <div class="skill-category-title">Government & Public Sector</div>
+            <ul class="skills-list">
+              <li>Sydney Trains (Transportation)</li>
+              <li>Regulatory Compliance Monitoring</li>
+              <li>Public Infrastructure Analytics</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Retail & E-commerce</div>
+            <ul class="skills-list">
+              <li>Woolworths Group, WooliesX, Big W</li>
+              <li>Enterprise System Monitoring</li>
+              <li>Loyalty Program Analytics</li>
+            </ul>
+          </div>
+          <div class="skills-category">
+            <div class="skill-category-title">Financial Services</div>
+            <ul class="skills-list">
+              <li>Equifax, Mastercard, Prospa</li>
+              <li>Risk Management Systems</li>
+              <li>Transaction Monitoring</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,145 @@
+{
+  "name": "resume-polisher",
+  "displayName": "Resume Polisher",
+  "description": "AI-powered resume tailoring for job applications using your resume database",
+  "version": "1.0.0",
+  "publisher": "your-publisher-id",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "resume",
+    "cv",
+    "job",
+    "ai",
+    "claude",
+    "career"
+  ],
+  "activationEvents": [
+    "onCommand:resumePolisher.start",
+    "workspaceContains:**/curator-output-master-reume/master_resume.yaml"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "resumePolisher.start",
+        "title": "Resume Polisher: Start",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "resumePolisher.extractFromUrl",
+        "title": "Resume Polisher: Extract Requirements from URL"
+      },
+      {
+        "command": "resumePolisher.generateResume",
+        "title": "Resume Polisher: Generate Tailored Resume"
+      },
+      {
+        "command": "resumePolisher.configureAPI",
+        "title": "Resume Polisher: Configure API Key"
+      },
+      {
+        "command": "resumePolisher.selectDatabase",
+        "title": "Resume Polisher: Select Database"
+      },
+      {
+        "command": "resumePolisher.selectTemplate",
+        "title": "Resume Polisher: Select Resume Template"
+      },
+      {
+        "command": "resumePolisher.openSettings",
+        "title": "Resume Polisher: Open Settings"
+      },
+      {
+        "command": "resumePolisher.exportPDF",
+        "title": "Resume Polisher: Export as PDF"
+      },
+      {
+        "command": "resumePolisher.resetWorkflow",
+        "title": "Resume Polisher: Reset Workflow"
+      }
+    ],
+    "configuration": {
+      "title": "Resume Polisher",
+      "properties": {
+        "resumePolisher.databasePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to resume database directory (auto-detected if empty)"
+        },
+        "resumePolisher.templatePath": {
+          "type": "string",
+          "default": "",
+          "description": "Default HTML resume template path"
+        },
+        "resumePolisher.outputDirectory": {
+          "type": "string",
+          "default": "${workspaceFolder}/polished-resume",
+          "description": "Output directory for generated resumes"
+        },
+        "resumePolisher.model": {
+          "type": "string",
+          "default": "claude-3-5-sonnet-20241022",
+          "enum": [
+            "claude-3-5-sonnet-20241022",
+            "claude-3-opus-20240229",
+            "claude-3-sonnet-20240229"
+          ],
+          "description": "Claude model to use for resume generation"
+        },
+        "resumePolisher.autoDetectDatabase": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect resume database in workspace"
+        },
+        "resumePolisher.agentInstructions": {
+          "type": "string",
+          "default": "",
+          "editPresentation": "multilineText",
+          "description": "Custom agent instructions for resume refinement (leave empty to use default)"
+        },
+        "resumePolisher.maxTokens": {
+          "type": "number",
+          "default": 8000,
+          "minimum": 1000,
+          "maximum": 16000,
+          "description": "Maximum tokens for Claude API responses"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "build:webview": "cd webview-ui && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.85.0",
+    "@types/js-yaml": "^4.0.9",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vscode/test-electron": "^2.3.8",
+    "eslint": "^8.54.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.17.0",
+    "js-yaml": "^4.1.0",
+    "playwright": "^1.40.0"
+  }
+}

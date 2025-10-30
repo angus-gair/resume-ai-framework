@@ -1,0 +1,76 @@
+flowchart TD
+
+    A["
+**1. Analyse Project & Extract Skills**
+
+agent: content-generator
+
+path: /home/thunder/projects/resume/resume-ai-framework/agents/1-resume-content-generator.md
+
+inputs: Raw project material; code, powerpoint, workbooks, PRD
+output: descriptions, summaries, technical details in .md
+    "]
+    B["
+**2. Resume Database Curator**
+
+agent: database-curator
+
+path:/home/thunder/projects/resume/resume-ai-framework/agents/2-Resume-database-curator.json
+
+inputs: .md files
+output: database
+    "]
+    C["
+**3. Master Resume Creator**
+
+agent: master-resume
+
+path: /home/thunder/projects/resume/resume-ai-framework/agents/3- Master-Resume-Creator.md
+
+input: DB (database)
+output: resume (html)
+    "]
+
+    %% Resume Polisher as subgraph
+    subgraph D["**Resume Polisher**"]
+      direction LR
+      %% Stage 1 - Extract Position Requirements
+      subgraph S1["Stage 1 · Extract Position Requirements"]
+        direction LR
+        S1a(["Call LLM Extract key position information from URL"])
+        S1b[("POSITION-REQUIREMENTS.md")]
+      end
+      %% Inputs for Stage 2
+      subgraph S2_inputs["Inputs"]
+        direction TB
+        S2i1[("POSITION-REQUIREMENTS.md")]
+        S2i2["Prompt user: 1) Select resume template (.html) 2) Choose output directory"]
+        S2i3[("Resume Database /mnt/fat-drive/resume-redo/curator")]
+      end
+      %% Stage 2 - Generate Tailored Resume
+      subgraph S2["Stage 2 · Generate Tailored Resume"]
+        direction LR
+        S2_inputs
+        S2a(["Call LLM · Resume Refinement Agent Tasks: tweak resume, write short recruiter message<br><br>/home/thunder/projects/resume/resume-ai-framework/agents/4-Resume-Refinement-Agent"])
+        S2o1[("Refined resume.html")]
+        S2o2[("Short recruiter message")]
+        DummyS2[" "]
+      end
+      %% External connections
+      A0[["User finds role on seek.com.au"]] --> A1["Job URL https://www.seek.com.au/job/..."]
+      A1 --> S1a
+      S1a --> S1b
+      S1b --> S2i1
+      S2_inputs --> S2a
+      S2a --> S2o1 & S2o2
+      S2o1 --> O1[("Saved to working directory")]
+      S2o2 --> O1
+
+      style S2_inputs fill:#FFCDD2
+      style DummyS2 fill:#ffffff00,stroke:#ffffff00
+    end
+
+    %% Link the top-level nodes
+    A --> B
+    B --> C
+    C --> D

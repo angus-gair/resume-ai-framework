@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Resume Editor - GrapesJS</title>
+  <link rel="stylesheet" href="node_modules/grapesjs/dist/css/grapes.min.css">
+  <script src="node_modules/grapesjs/dist/grapes.min.js"></script>
+  <script src="node_modules/grapesjs-preset-webpage/dist/index.js"></script>
+  
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    
+    .panel__top {
+      padding: 10px;
+      background-color: #444;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .panel__top h1 {
+      color: white;
+      margin: 0;
+      font-size: 20px;
+    }
+    
+    .panel__basic-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .page-dimensions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      font-size: 13px;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 3px;
+      margin: 0 20px;
+    }
+    
+    .dimension-label {
+      font-weight: 600;
+      color: #bbbbbb;
+    }
+    
+    #page-width, #page-height {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #ffffff;
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 4px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      position: relative;
+    }
+    
+    #page-width:hover, #page-height:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+    
+    #page-width::after, #page-height::after {
+      content: 'Click to change unit';
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 1000;
+    }
+    
+    #page-width:hover::after, #page-height:hover::after {
+      opacity: 1;
+    }
+    
+    .dimension-separator {
+      color: #888;
+      font-weight: 300;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      background-color: #0d47a1;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 14px;
+    }
+    
+    .btn:hover {
+      background-color: #1565c0;
+    }
+    
+    .btn-success {
+      background-color: #2e7d32;
+    }
+    
+    .btn-success:hover {
+      background-color: #388e3c;
+    }
+    
+    .btn-warning {
+      background-color: #ed6c02;
+    }
+    
+    .btn-warning:hover {
+      background-color: #e65100;
+    }
+    
+    #gjs {
+      border: none;
+      height: calc(100% - 60px);
+    }
+    
+    /* Override some GrapesJS styles for better resume editing */
+    .gjs-cv-canvas {
+      background-color: #f5f5f5;
+    }
+    
+    .gjs-frame {
+      background-color: white;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    
+    /* Print-specific styles */
+    @media print {
+      /* Hide UI elements during print */
+      .panel__top,
+      .gjs-pn-panels,
+      .gjs-toolbar,
+      .gjs-resizer,
+      .gjs-highlighter,
+      .gjs-badge,
+      .gjs-placeholder {
+        display: none !important;
+      }
+      
+      /* Set page size and remove margins */
+      @page {
+        size: 8.5in auto; /* Standard width, auto height for single long page */
+        margin: 0;
+      }
+      
+      /* Ensure proper sizing for print */
+      body {
+        margin: 0;
+        padding: 0;
+        width: 8.5in;
+      }
+      
+      #gjs {
+        height: auto !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 8.5in !important;
+      }
+      
+      .gjs-frame {
+        width: 8.5in !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+      }
+      
+      /* Remove iframe constraints for printing */
+      iframe {
+        width: 8.5in !important;
+        height: auto !important;
+        min-height: 100% !important;
+      }
+      
+      /* Ensure content is not cut off */
+      * {
+        overflow: visible !important;
+      }
+    }
+    
+    /* Hidden print container for dynamic height calculation */
+    #print-container {
+      position: absolute;
+      left: -9999px;
+      width: 8.5in;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel__top">
+    <h1>Resume Editor</h1>
+    <div class="page-dimensions">
+      <span class="dimension-label">Page Size:</span>
+      <span id="page-width">W: --</span>
+      <span class="dimension-separator">×</span>
+      <span id="page-height">H: --</span>
+    </div>
+    <div class="panel__basic-actions">
+      <button class="btn" onclick="loadResume()">Load Resume</button>
+      <button class="btn btn-success" onclick="saveHTML()">Save HTML</button>
+      <button class="btn btn-warning" onclick="exportHTML()">Export HTML</button>
+      <button class="btn" style="background-color: #6a1b9a;" onclick="printResume()">Print to PDF</button>
+      <button class="btn" style="background-color: #d32f2f;" onclick="saveToPDF()">Save to PDF</button>
+      <button class="btn" onclick="clearEditor()">Clear</button>
+    </div>
+  </div>
+  
+  <div id="gjs"></div>
+  
+  <script type="text/javascript">
+    // Initialize GrapesJS
+    const editor = grapesjs.init({
+      container: '#gjs',
+      height: '100%',
+      width: 'auto',
+      
+      // Use webpage preset for basic functionality
+      plugins: ['gjs-preset-webpage'],
+      pluginsOpts: {
+        'gjs-preset-webpage': {
+          blocks: ['link-block', 'quote', 'text-basic'],
+        }
+      },
+      
+      // Storage manager configuration
+      storageManager: {
+        type: 'local',
+        autosave: true,
+        autoload: true,
+        stepsBeforeSave: 1,
+        options: {
+          local: {
+            key: 'gjsProject-resume',
+          }
+        }
+      },
+      
+      // Canvas configuration
+      canvas: {
+        styles: [
+          'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap'
+        ]
+      },
+      
+      // Style manager configuration
+      styleManager: {
+        sectors: [{
+          name: 'General',
+          open: false,
+          buildProps: ['float', 'display', 'position', 'top', 'right', 'left', 'bottom']
+        }, {
+          name: 'Typography',
+          open: false,
+          buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height', 'text-align', 'text-decoration', 'text-shadow']
+        }, {
+          name: 'Decorations',
+          open: false,
+          buildProps: ['background-color', 'border', 'border-radius', 'box-shadow', 'background']
+        }, {
+          name: 'Dimension',
+          open: false,
+          buildProps: ['width', 'height', 'max-width', 'min-height', 'margin', 'padding']
+        }]
+      },
+      
+      // Panel configuration
+      panels: {
+        defaults: []
+      },
+      
+      // Device manager
+      deviceManager: {
+        devices: [{
+          name: 'Desktop',
+          width: '1024px',
+        }, {
+          name: 'Print',
+          width: '8.5in',
+        }]
+      }
+    });
+    
+    // Function to load resume HTML with file selection
+    async function loadResume() {
+      // Create file input element
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.html';
+      fileInput.style.display = 'none';
+      
+      // Add to document temporarily
+      document.body.appendChild(fileInput);
+      
+      // Handle file selection
+      fileInput.onchange = async function(event) {
+        const file = event.target.files[0];
+        if (!file) {
+          document.body.removeChild(fileInput);
+          return;
+        }
+        
+        try {
+          // Read the selected file
+          const html = await file.text();
+          
+          // Extract just the content inside the body
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const bodyContent = doc.body.innerHTML;
+          const styles = doc.querySelector('style') ? doc.querySelector('style').innerHTML : '';
+          
+          // Load content into editor
+          editor.setComponents(bodyContent);
+          editor.setStyle(styles);
+          
+          alert(`Resume "${file.name}" loaded successfully!`);
+        } catch (error) {
+          alert('Error loading resume: ' + error.message);
+        } finally {
+          // Clean up
+          document.body.removeChild(fileInput);
+        }
+      };
+      
+      // Trigger file selection dialog
+      fileInput.click();
+    }
+    
+    // Function to save HTML to localStorage
+    function saveHTML() {
+      const html = editor.getHtml();
+      const css = editor.getCss();
+      const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Angus James - Resume</title>
+  <style>${css}</style>
+</head>
+<body>${html}</body>
+</html>`;
+      
+      localStorage.setItem('resume-edited', fullHTML);
+      alert('Resume saved to browser storage!');
+    }
+    
+    // Function to export HTML as downloadable file
+    function exportHTML() {
+      const html = editor.getHtml();
+      const css = editor.getCss();
+      const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Angus James - Resume</title>
+  <style>${css}</style>
+</head>
+<body>${html}</body>
+</html>`;
+      
+      // Create blob and download
+      const blob = new Blob([fullHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'angus-james-resume-edited.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    
+    // Function to clear editor
+    function clearEditor() {
+      if (confirm('Are you sure you want to clear the editor?')) {
+        editor.setComponents('');
+        editor.setStyle('');
+      }
+    }
+    
+    // Function to print resume as single-page PDF
+    function printResume() {
+      // Get the current HTML and CSS from the editor
+      const html = editor.getHtml();
+      const css = editor.getCss();
+      
+      // Create a print-specific CSS that includes editor styles and print optimizations
+      const printCSS = `
+        ${css}
+        
+        /* Print-specific overrides */
+        @media print {
+          @page {
+            size: 8.5in auto;
+            margin: 0;
+          }
+          
+          body {
+            margin: 0;
+            padding: 0;
+            width: 8.5in;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          /* Ensure single column layout */
+          .page, .resume-container, .container {
+            width: 8.5in !important;
+            max-width: 8.5in !important;
+            margin: 0 !important;
+            padding: 0.5in !important;
+            page-break-inside: avoid;
+          }
+          
+          /* Prevent page breaks within sections */
+          .section, .block, .job-block, .skill-block {
+            page-break-inside: avoid;
+          }
+          
+          /* Remove any height constraints */
+          * {
+            max-height: none !important;
+            overflow: visible !important;
+          }
+          
+          /* Ensure text is black for better printing */
+          body, h1, h2, h3, h4, h5, h6, p, li, span {
+            color: #000 !important;
+          }
+          
+          /* Make links black and remove underlines */
+          a {
+            color: #000 !important;
+            text-decoration: none !important;
+          }
+          
+          /* Hide any non-content elements */
+          .gjs-selected, .gjs-hovered, .gjs-toolbar, .gjs-resizer {
+            display: none !important;
+          }
+        }
+        
+        /* Additional print optimizations */
+        @media print {
+          /* Ensure fonts are properly loaded */
+          * {
+            font-family: 'Segoe UI', 'Open Sans', Arial, sans-serif !important;
+          }
+          
+          /* Force background colors to print */
+          .section-header, .header, .accent {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `;
+      
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      
+      // Build the complete HTML document
+      const printDocument = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Resume - Print Version</title>
+          <style>${printCSS}</style>
+        </head>
+        <body>
+          ${html}
+        </body>
+        </html>
+      `;
+      
+      // Write the content to the print window
+      printWindow.document.open();
+      printWindow.document.write(printDocument);
+      printWindow.document.close();
+      
+      // Wait for content to load, then trigger print
+      printWindow.onload = function() {
+        // Small delay to ensure styles are applied
+        setTimeout(() => {
+          printWindow.print();
+          
+          // Close the window after printing (or canceling)
+          printWindow.onafterprint = function() {
+            printWindow.close();
+          };
+        }, 250);
+      };
+    }
+
+    // Function to save resume as PDF using FreeConvert API
+    async function saveToPDF() {
+      const API_KEY = 'api_production_42b9e220be7d63d1d2e7d8aada39faaab07488c411aa4741ee40594e7b3eb289.68819ed6ab27c68abc55ef7f.68819f1dab27c68abc55ef89';
+
+      try {
+        // Show loading state
+        const button = document.querySelector('[onclick="saveToPDF()"]');
+        const originalText = button.textContent;
+        button.textContent = 'Converting...';
+        button.disabled = true;
+
+        // Get HTML content from editor
+        const html = editor.getHtml();
+        const css = editor.getCss();
+        
+        // Create PDF-optimized HTML with continuous page layout and margins
+        const pdfHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Angus James - Resume</title>
+  <style>
+    ${css}
+    
+    /* PDF-specific styles for continuous page - no margins */
+    @page {
+      margin: 0;
+    }
+    
+    /* Prevent page breaks - force single continuous page */
+    html, body {
+      height: auto !important;
+      overflow: visible !important;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', 'Open Sans', Arial, sans-serif;
+      line-height: 1.4;
+      color: #000;
+      background: white;
+    }
+    
+    /* Ensure single continuous page layout */
+    .page, .resume-container, .container {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      page-break-inside: avoid;
+    }
+    
+    /* Prevent unwanted page breaks */
+    .section, .block, .job-block, .skill-block {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    
+    /* Ensure content flows properly */
+    * {
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    
+    /* Preserve original colors - remove color overrides */
+    /* Keep original text colors and styling */
+    
+    /* Preserve link styling with original colors */
+    a {
+      text-decoration: none !important;
+    }
+    
+    /* Force ALL colors and backgrounds to show */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    
+    /* Ensure backgrounds are preserved */
+    .section-header, .header, .accent, body, div {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  </style>
+</head>
+<body>
+  ${html}
+</body>
+</html>`;
+
+        // Step 1: Upload HTML content to FreeConvert
+        const uploadResponse = await fetch('https://api.freeconvert.com/v1/process/import/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        }
+
+        const uploadData = await uploadResponse.json();
+        console.log('Upload response:', uploadData); // Debug logging
+        
+        if (!uploadData.result || !uploadData.result.form) {
+          throw new Error('Invalid upload response structure');
+        }
+        
+        const uploadUrl = uploadData.result.form.url;
+        const signature = uploadData.result.form.parameters.signature;
+        const taskId = uploadData.id;
+
+        // Upload the actual HTML content using form data
+        const formData = new FormData();
+        formData.append('signature', signature);
+        formData.append('file', new Blob([pdfHTML], { type: 'text/html' }), 'resume.html');
+        
+        console.log('Uploading to:', uploadUrl); // Debug logging
+        const uploadFileResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!uploadFileResponse.ok) {
+          const errorText = await uploadFileResponse.text();
+          console.error('Upload error response:', errorText);
+          throw new Error(`File upload failed: ${uploadFileResponse.status} - ${errorText}`);
+        }
+        
+        console.log('File uploaded successfully');
+
+        // Step 2: Convert HTML to PDF
+        const convertResponse = await fetch('https://api.freeconvert.com/v1/process/convert', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            input: taskId,
+            output_format: 'pdf',
+            options: {
+              // No specific page size - let it auto-size
+              margin_top: '0px',
+              margin_bottom: '0px', 
+              margin_left: '0px',
+              margin_right: '0px',
+              print_background: true,
+              print_media_type: true
+            }
+          })
+        });
+
+        if (!convertResponse.ok) {
+          const errorText = await convertResponse.text();
+          console.error('Convert error response:', errorText);
+          throw new Error(`Conversion failed: ${convertResponse.status} ${convertResponse.statusText} - ${errorText}`);
+        }
+
+        const convertData = await convertResponse.json();
+        console.log('Convert response:', convertData); // Debug logging
+        
+        if (!convertData.id) {
+          throw new Error('Invalid conversion response - missing task ID');
+        }
+        
+        const convertTaskId = convertData.id;
+
+        // Step 3: Wait for conversion to complete and download
+        let conversionComplete = false;
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds timeout
+
+        while (!conversionComplete && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          
+          const statusResponse = await fetch(`https://api.freeconvert.com/v1/process/tasks/${convertTaskId}`, {
+            headers: {
+              'Authorization': `Bearer ${API_KEY}`
+            }
+          });
+
+          if (!statusResponse.ok) {
+            const errorText = await statusResponse.text();
+            console.error('Status check error:', errorText);
+            throw new Error(`Status check failed: ${statusResponse.status} - ${errorText}`);
+          }
+
+          const statusData = await statusResponse.json();
+          console.log('Status response:', statusData); // Debug logging
+          
+          if (statusData.status === 'completed') {
+            conversionComplete = true;
+            
+            if (!statusData.result || !statusData.result.url) {
+              throw new Error('Invalid status response - missing download URL');
+            }
+            
+            // Download the PDF
+            const downloadUrl = statusData.result.url;
+            const downloadResponse = await fetch(downloadUrl);
+            
+            if (!downloadResponse.ok) {
+              throw new Error(`Download failed: ${downloadResponse.status}`);
+            }
+
+            const pdfBlob = await downloadResponse.blob();
+            
+            // Create download link
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'angus-james-resume.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('PDF saved successfully!');
+            
+          } else if (statusData.status === 'failed') {
+            throw new Error('PDF conversion failed');
+          }
+          
+          attempts++;
+        }
+
+        if (!conversionComplete) {
+          throw new Error('Conversion timeout - please try again');
+        }
+
+      } catch (error) {
+        console.error('PDF conversion error:', error);
+        alert(`Error converting to PDF: ${error.message}`);
+      } finally {
+        // Reset button state
+        const button = document.querySelector('[onclick="saveToPDF()"]');
+        button.textContent = 'Save to PDF';
+        button.disabled = false;
+      }
+    }
+    
+    // Dimension display functionality
+    let currentUnit = 'in'; // Default to inches
+    
+    // Function to convert pixels to other units
+    function convertPixels(pixels, toUnit) {
+      const dpi = 96; // Standard screen DPI
+      switch(toUnit) {
+        case 'in':
+          return (pixels / dpi).toFixed(2);
+        case 'mm':
+          return (pixels / dpi * 25.4).toFixed(1);
+        case 'px':
+          return pixels.toFixed(0);
+        default:
+          return pixels;
+      }
+    }
+    
+    // Function to update page dimensions display
+    function updatePageDimensions() {
+      try {
+        // Get the iframe containing the resume
+        const iframe = editor.Canvas.getFrameEl();
+        if (!iframe || !iframe.contentDocument) {
+          console.log('Iframe not ready');
+          return;
+        }
+        
+        const iframeDoc = iframe.contentDocument;
+        const body = iframeDoc.body;
+        
+        if (!body) {
+          console.log('Body not found');
+          return;
+        }
+        
+        // Calculate actual content dimensions
+        let contentWidth = 816; // 8.5 inches at 96 DPI
+        let contentHeight = body.scrollHeight || body.offsetHeight || 1056; // Default to 11 inches if no content
+        
+        // Try to get more accurate width from page element
+        const pageElement = iframeDoc.querySelector('.page') || 
+                           iframeDoc.querySelector('.resume-container') || 
+                           iframeDoc.querySelector('.container') || 
+                           body;
+        
+        if (pageElement) {
+          const computedStyle = iframe.contentWindow.getComputedStyle(pageElement);
+          const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+          const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+          contentWidth = pageElement.offsetWidth || contentWidth;
+          
+          // Get the actual height including all content
+          const rect = pageElement.getBoundingClientRect();
+          const fullHeight = Math.max(
+            body.scrollHeight,
+            body.offsetHeight,
+            pageElement.scrollHeight,
+            pageElement.offsetHeight,
+            rect.height
+          );
+          contentHeight = fullHeight || contentHeight;
+        }
+        
+        // Update display based on current unit
+        const widthDisplay = document.getElementById('page-width');
+        const heightDisplay = document.getElementById('page-height');
+        
+        const unitLabel = currentUnit === 'px' ? 'px' : (currentUnit === 'mm' ? 'mm' : '"');
+        
+        widthDisplay.textContent = `W: ${convertPixels(contentWidth, currentUnit)}${unitLabel}`;
+        heightDisplay.textContent = `H: ${convertPixels(contentHeight, currentUnit)}${unitLabel}`;
+        
+        // Store raw pixel values for unit conversion
+        widthDisplay.dataset.pixels = contentWidth;
+        heightDisplay.dataset.pixels = contentHeight;
+        
+      } catch (error) {
+        console.error('Error updating dimensions:', error);
+      }
+    }
+    
+    // Function to cycle through units when clicking on dimensions
+    function cycleUnits() {
+      const units = ['in', 'mm', 'px'];
+      const currentIndex = units.indexOf(currentUnit);
+      currentUnit = units[(currentIndex + 1) % units.length];
+      updatePageDimensions();
+    }
+    
+    // Add click handlers to dimension displays
+    document.getElementById('page-width').addEventListener('click', cycleUnits);
+    document.getElementById('page-height').addEventListener('click', cycleUnits);
+    
+    // Update dimensions when editor content changes
+    editor.on('component:update', updatePageDimensions);
+    editor.on('component:add', updatePageDimensions);
+    editor.on('component:remove', updatePageDimensions);
+    editor.on('load', () => {
+      setTimeout(updatePageDimensions, 500);
+    });
+    
+    // Update dimensions periodically to catch any changes
+    setInterval(updatePageDimensions, 1000);
+    
+    // Initial dimension update
+    setTimeout(updatePageDimensions, 1000);
+    
+    // Add some custom blocks for resume editing
+    editor.BlockManager.add('section-block', {
+      label: 'Section',
+      content: '<div class="section"><h2 class="section-title">Section Title</h2><div class="section-content">Content here...</div></div>',
+      category: 'Resume',
+      attributes: { class: 'gjs-block-section' }
+    });
+    
+    editor.BlockManager.add('job-block', {
+      label: 'Job Entry',
+      content: `<div class="block">
+        <div class="block-heading">
+          <span class="heading-primary">Company Name</span>
+          <span class="heading-minor">Date Range</span>
+        </div>
+        <div class="heading-secondary">Job Title</div>
+        <ul>
+          <li>Achievement or responsibility</li>
+        </ul>
+      </div>`,
+      category: 'Resume',
+      attributes: { class: 'gjs-block-job' }
+    });
+    
+    editor.BlockManager.add('skill-block', {
+      label: 'Skill Category',
+      content: `<div class="skills-category">
+        <div class="skill-category-title">Category Name</div>
+        <ul class="skills-list">
+          <li>Skill 1</li>
+          <li>Skill 2</li>
+        </ul>
+      </div>`,
+      category: 'Resume',
+      attributes: { class: 'gjs-block-skill' }
+    });
+  </script>
+</body>
+</html>

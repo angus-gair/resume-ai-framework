@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+webview-ui/node_modules/
+
+# Build outputs
+dist/
+out/
+webview-ui/dist/
+*.vsix
+
+# IDE
+.vscode-test/
+.vscode/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
