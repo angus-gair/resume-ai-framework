@@ -3,16 +3,214 @@ const path = require('path');
 const fs = require('fs').promises;
 const yaml = require('js-yaml');
 const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
+const axios = require('axios');
 const cheerio = require('cheerio');
 
 let mainWindow;
-let anthropicClient;
+let llmClient;
+let llmProvider;
+let llmModel;
 
-// Initialize Anthropic client
-function initializeAI(apiKey) {
-  anthropicClient = new Anthropic({
-    apiKey: apiKey
-  });
+// Initialize LLM client based on provider
+function initializeLLM(config) {
+  llmProvider = config.provider;
+  llmModel = config.model;
+
+  if (config.provider === 'anthropic') {
+    llmClient = new Anthropic({
+      apiKey: config.apiKey
+    });
+  } else if (config.provider === 'mcp') {
+    // MCP Server integration
+    llmClient = {
+      mcpURL: config.baseURL || 'http://100.64.204.61:8734',
+      async executeMCP(prompt, maxTokens) {
+        const response = await axios.post(`${this.mcpURL}/mcp`, {
+          jsonrpc: '2.0',
+          method: 'tools/call',
+          params: {
+            name: 'claude_code_execute',
+            arguments: {
+              command: prompt,
+              max_tokens: maxTokens
+            }
+          },
+          id: Date.now()
+        }, {
+          timeout: 120000 // 2 minutes
+        });
+        return response.data.result;
+      },
+      // Wrap MCP in OpenAI-like interface for compatibility
+      chat: {
+        completions: {
+          create: async function({ messages, max_tokens, stream }) {
+            const prompt = messages[messages.length - 1].content;
+            const result = await llmClient.executeMCP(prompt, max_tokens);
+
+            if (stream) {
+              // For now, return non-streaming response
+              // TODO: Implement SSE streaming for MCP
+              throw new Error('Streaming not yet supported for MCP provider');
+            }
+
+            return {
+              choices: [{
+                message: { content: result.output || result }
+              }],
+              usage: {
+                prompt_tokens: Math.ceil(prompt.length / 4),
+                completion_tokens: Math.ceil((result.output || result).length / 4)
+              }
+            };
+          }
+        }
+      }
+    };
+  } else {
+    // OpenAI-compatible providers: openai, openrouter, custom, xai, github
+    const openaiConfig = {
+      apiKey: config.apiKey,
+    };
+    if (config.baseURL) {
+      openaiConfig.baseURL = config.baseURL;
+    }
+    llmClient = new OpenAI(openaiConfig);
+  }
+}
+
+// Get provider-specific max token limits
+function getMaxTokensForProvider(requestedTokens) {
+  // GitHub Models has strict server-side limits
+  if (llmProvider === 'github') {
+    const limit = 4000; // GitHub free tier: 4K output max
+    if (requestedTokens > limit) {
+      console.warn(`⚠️  GitHub Models limits output to ${limit} tokens. Requested ${requestedTokens}, using ${limit}.`);
+    }
+    return Math.min(requestedTokens, limit);
+  }
+
+  // Other provider-specific limits can be added here
+  // xAI, OpenRouter, etc. support higher limits
+  return requestedTokens;
+}
+
+// Unified streaming function for all providers
+async function streamLLMCompletion(prompt, maxTokens, onChunk, onProgress) {
+  let fullText = '';
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  // Apply provider-specific token limits
+  const actualMaxTokens = getMaxTokensForProvider(maxTokens);
+
+  if (llmProvider === 'anthropic') {
+    const stream = await llmClient.messages.stream({
+      model: llmModel,
+      max_tokens: actualMaxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    for await (const chunk of stream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+        const text = chunk.delta.text;
+        fullText += text;
+        if (onChunk) onChunk(text, fullText.length);
+      } else if (chunk.type === 'message_start') {
+        inputTokens = chunk.message.usage.input_tokens;
+      } else if (chunk.type === 'message_delta') {
+        outputTokens = chunk.usage.output_tokens;
+      }
+    }
+  } else {
+    // OpenAI-compatible streaming
+    const stream = await llmClient.chat.completions.create({
+      model: llmModel,
+      max_tokens: actualMaxTokens,
+      messages: [{ role: 'user', content: prompt }],
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content || '';
+      if (text) {
+        fullText += text;
+        if (onChunk) onChunk(text, fullText.length);
+      }
+
+      // OpenAI provides usage in the last chunk
+      if (chunk.usage) {
+        inputTokens = chunk.usage.prompt_tokens;
+        outputTokens = chunk.usage.completion_tokens;
+      }
+    }
+
+    // If usage wasn't in stream, estimate it (OpenRouter sometimes doesn't include it)
+    if (!inputTokens) {
+      inputTokens = Math.ceil(prompt.length / 4); // Rough estimate: 1 token ≈ 4 chars
+      outputTokens = Math.ceil(fullText.length / 4);
+    }
+  }
+
+  return { fullText, inputTokens, outputTokens };
+}
+
+// Provider-aware cost calculation
+function calculateCost(inputTokens, outputTokens, provider, model) {
+  // Default pricing structure (per 1M tokens)
+  const pricing = {
+    anthropic: {
+      'claude-sonnet-4-5': { input: 3, output: 15 },
+      'claude-3-5-sonnet-20241022': { input: 3, output: 15 },
+      'claude-3-5-haiku-20241022': { input: 1, output: 5 },
+    },
+    openai: {
+      'gpt-4o': { input: 2.5, output: 10 },
+      'gpt-4o-mini': { input: 0.15, output: 0.6 },
+      'gpt-4-turbo': { input: 10, output: 30 },
+    },
+    xai: {
+      'grok-2': { input: 3, output: 12 },
+      'grok-2-mini': { input: 0.75, output: 3 },
+      'grok-beta': { input: 3, output: 12 }
+    },
+    zhipuai: {
+      'GLM-4.5-Flash': { input: 0.10, output: 0.10 },
+      'GLM-4-Plus': { input: 0.50, output: 0.50 },
+      'GLM-4': { input: 1, output: 1 }
+    },
+    github: {
+      // Free tier - no cost
+      default: { input: 0, output: 0 }
+    },
+    mcp: {
+      // Uses server's quota - no direct cost
+      default: { input: 0, output: 0 }
+    },
+    openrouter: {
+      // OpenRouter pricing varies by model - use conservative estimates
+      default: { input: 3, output: 15 }
+    },
+    custom: {
+      // Unknown pricing for custom endpoints
+      default: { input: 0, output: 0 }
+    }
+  };
+
+  let modelPricing;
+  if (pricing[provider] && pricing[provider][model]) {
+    modelPricing = pricing[provider][model];
+  } else if (pricing[provider] && pricing[provider].default) {
+    modelPricing = pricing[provider].default;
+  } else {
+    // Fallback to free if unknown
+    modelPricing = { input: 0, output: 0 };
+  }
+
+  const costInput = (inputTokens / 1000000) * modelPricing.input;
+  const costOutput = (outputTokens / 1000000) * modelPricing.output;
+  return costInput + costOutput;
 }
 
 function createWindow() {
@@ -122,15 +320,34 @@ app.on('activate', () => {
 // ============================================
 
 // Initialize API Key
-ipcMain.handle('initialize-api', async (event, apiKey) => {
+ipcMain.handle('initialize-api', async (event, config) => {
   try {
-    initializeAI(apiKey);
-    // Test the connection
-    await anthropicClient.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 10,
-      messages: [{ role: 'user', content: 'test' }]
-    });
+    initializeLLM(config);
+
+    // Test the API with a simple request
+    if (config.provider === 'anthropic') {
+      await llmClient.messages.create({
+        model: config.model,
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'test' }]
+      });
+    } else if (config.provider === 'mcp') {
+      // Test MCP server connection
+      const healthCheck = await axios.get(`${llmClient.mcpURL}/health`, {
+        timeout: 5000
+      });
+      if (!healthCheck.data || healthCheck.status !== 200) {
+        throw new Error('MCP server health check failed');
+      }
+    } else {
+      // OpenAI-compatible test (openai, xai, github, openrouter, custom)
+      await llmClient.chat.completions.create({
+        model: config.model,
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'test' }]
+      });
+    }
+
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -276,7 +493,7 @@ ipcMain.handle('scrape-job-url', async (event, jobUrl) => {
 
 ipcMain.handle('extract-requirements', async (event, { jobUrl, pageContent }) => {
   try {
-    if (!anthropicClient) {
+    if (!llmClient) {
       return { success: false, error: 'API key not initialized' };
     }
 
@@ -302,11 +519,28 @@ ${pageContent}`;
 
     mainWindow.webContents.send('extraction-progress', { stage: 'processing', progress: 50 });
 
-    const message = await anthropicClient.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: agentPrompt }]
-    });
+    // Use provider-specific API call
+    let message;
+    const maxTokens = getMaxTokensForProvider(16000);
+
+    if (llmProvider === 'anthropic') {
+      message = await llmClient.messages.create({
+        model: llmModel,
+        max_tokens: maxTokens,
+        messages: [{ role: 'user', content: agentPrompt }]
+      });
+    } else {
+      // OpenAI-compatible
+      const response = await llmClient.chat.completions.create({
+        model: llmModel,
+        max_tokens: maxTokens,
+        messages: [{ role: 'user', content: agentPrompt }]
+      });
+      // Convert to Anthropic-style response format for consistency
+      message = {
+        content: [{ text: response.choices[0].message.content }]
+      };
+    }
 
     mainWindow.webContents.send('extraction-progress', { stage: 'complete', progress: 100 });
 
@@ -379,7 +613,7 @@ ipcMain.handle('load-database', async (event, databasePath) => {
 
 ipcMain.handle('generate-tailored-resume', async (event, { requirements, templateHtml, database }) => {
   try {
-    if (!anthropicClient) {
+    if (!llmClient) {
       return { success: false, error: 'API key not initialized' };
     }
 
@@ -486,13 +720,13 @@ IMPORTANT OUTPUT FORMAT:
     mainWindow.webContents.send('generation-progress', {
       stage: 'generating',
       progress: 35,
-      log: 'Preparing prompt for Claude Sonnet 4.5...'
+      log: `Preparing prompt for ${llmProvider} (${llmModel})...`
     });
 
     mainWindow.webContents.send('generation-progress', {
       stage: 'generating',
       progress: 40,
-      log: 'Sending request to Anthropic API...'
+      log: `Sending request to ${llmProvider} API...`
     });
 
     mainWindow.webContents.send('generation-progress', {
@@ -501,51 +735,42 @@ IMPORTANT OUTPUT FORMAT:
       log: 'Waiting for AI to analyze requirements and select matching achievements...'
     });
 
-    // Use streaming API to show real-time generation
-    let fullText = '';
-    let inputTokens = 0;
-    let outputTokens = 0;
-
     mainWindow.webContents.send('generation-progress', {
       stage: 'generating',
       progress: 50,
-      log: 'Claude is now analyzing and generating...',
+      log: 'AI is now analyzing and generating...',
       streamStart: true
     });
 
-    const stream = await anthropicClient.messages.stream({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 8000,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
-    for await (const chunk of stream) {
-      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-        const text = chunk.delta.text;
-        fullText += text;
-
+    // Use unified streaming function for all providers
+    const resumeResult = await streamLLMCompletion(
+      prompt,
+      16000,
+      (text, length) => {
         // Send streaming chunk to frontend
         mainWindow.webContents.send('generation-progress', {
           stage: 'generating',
-          progress: Math.min(50 + (fullText.length / 200), 70),
+          progress: Math.min(50 + (length / 200), 70),
           streamChunk: text,
-          streamLength: fullText.length
+          streamLength: length
         });
-      } else if (chunk.type === 'message_start') {
-        inputTokens = chunk.message.usage.input_tokens;
-      } else if (chunk.type === 'message_delta') {
-        outputTokens = chunk.usage.output_tokens;
       }
-    }
+    );
 
     mainWindow.webContents.send('generation-progress', {
       stage: 'generating',
       progress: 70,
-      log: `AI response received (${fullText.length} characters)`,
+      log: `AI response received (${resumeResult.fullText.length} characters)`,
       streamEnd: true
     });
 
-    const message = { content: [{ text: fullText }], usage: { input_tokens: inputTokens, output_tokens: outputTokens } };
+    const message = {
+      content: [{ text: resumeResult.fullText }],
+      usage: {
+        input_tokens: resumeResult.inputTokens,
+        output_tokens: resumeResult.outputTokens
+      }
+    };
 
     mainWindow.webContents.send('generation-progress', {
       stage: 'finalizing',
@@ -601,33 +826,19 @@ ${requirements}
 
 Keep it concise, confident, and professional.`;
 
-    let recruiterText = '';
-    let recruiterInputTokens = 0;
-    let recruiterOutputTokens = 0;
-
-    const recruiterStream = await anthropicClient.messages.stream({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: messagePrompt }]
-    });
-
-    for await (const chunk of recruiterStream) {
-      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-        const text = chunk.delta.text;
-        recruiterText += text;
-
+    // Use unified streaming function for recruiter message
+    const recruiterResult = await streamLLMCompletion(
+      messagePrompt,
+      1000,
+      (text, length) => {
         mainWindow.webContents.send('generation-progress', {
           stage: 'message',
-          progress: Math.min(85 + (recruiterText.length / 50), 95),
+          progress: Math.min(85 + (length / 50), 95),
           streamChunk: text,
-          streamLength: recruiterText.length
+          streamLength: length
         });
-      } else if (chunk.type === 'message_start') {
-        recruiterInputTokens = chunk.message.usage.input_tokens;
-      } else if (chunk.type === 'message_delta') {
-        recruiterOutputTokens = chunk.usage.output_tokens;
       }
-    }
+    );
 
     mainWindow.webContents.send('generation-progress', {
       stage: 'message',
@@ -636,7 +847,13 @@ Keep it concise, confident, and professional.`;
       streamEnd: true
     });
 
-    const recruiterMessage = { content: [{ text: recruiterText }], usage: { input_tokens: recruiterInputTokens, output_tokens: recruiterOutputTokens } };
+    const recruiterMessage = {
+      content: [{ text: recruiterResult.fullText }],
+      usage: {
+        input_tokens: recruiterResult.inputTokens,
+        output_tokens: recruiterResult.outputTokens
+      }
+    };
 
     mainWindow.webContents.send('generation-progress', {
       stage: 'complete',
@@ -648,10 +865,8 @@ Keep it concise, confident, and professional.`;
     const inputTokens = message.usage.input_tokens + recruiterMessage.usage.input_tokens;
     const outputTokens = message.usage.output_tokens + recruiterMessage.usage.output_tokens;
 
-    // Claude Sonnet 4.5 pricing (as of Oct 2024): $3 per 1M input tokens, $15 per 1M output tokens
-    const costInput = (inputTokens / 1000000) * 3;
-    const costOutput = (outputTokens / 1000000) * 15;
-    const totalCost = costInput + costOutput;
+    // Use provider-aware cost calculation
+    const totalCost = calculateCost(inputTokens, outputTokens, llmProvider, llmModel);
 
     return {
       success: true,
